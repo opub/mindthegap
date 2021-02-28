@@ -1,0 +1,23 @@
+{
+    "exchanges": {
+        "exclude": [
+            "btcturk",
+            "buda",
+            "coinegg",
+            "coingi"
+        ]
+    },
+    "bases": {
+        "exclude": [
+            "usd",
+            "usdt"
+        ]
+    },
+    "quotes": {
+        "include": [
+            "usd",
+            "usdt"
+        ]
+    },
+    "logging": "info"
+}
