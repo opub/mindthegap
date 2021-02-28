@@ -1,0 +1,2 @@
+# arbitrage
+Cryptocurrency arbitrage bot
