@@ -5,7 +5,7 @@ module.exports.includeExchange = function (name) {
 }
 
 module.exports.includeMarket = function (market) {
-    return filter(market.base.toLowerCase(), settings.bases) && filter(market.quote.toLowerCase(), settings.quotes);
+    return market.active && filter(market.base.toLowerCase(), settings.bases) && filter(market.quote.toLowerCase(), settings.quotes);
 }
 
 module.exports.debug = function () {
