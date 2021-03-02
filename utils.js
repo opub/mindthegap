@@ -5,7 +5,10 @@ module.exports.includeExchange = function (name) {
 }
 
 module.exports.includeMarket = function (market) {
-    return market.active && filter(market.base.toLowerCase(), settings.bases) && filter(market.quote.toLowerCase(), settings.quotes);
+    return market.active
+        && filter(market.type ? market.type.toLowerCase() : market.type, settings.markets)
+        && filter(market.base.toLowerCase(), settings.bases)
+        && filter(market.quote.toLowerCase(), settings.quotes);
 }
 
 module.exports.debug = function () {
@@ -38,6 +41,6 @@ function writeLog(level, params) {
 }
 
 function filter(name, values) {
-    return !(values && (values.include && !values.include.includes(name)
+    return !(name && values && (values.include && !values.include.includes(name)
         || values.exclude && values.exclude.includes(name)));
 }

@@ -4,19 +4,43 @@
             "btcturk",
             "buda",
             "coinegg",
-            "coingi"
+            "coingi",
+            "okex"
+        ],
+        "shorts": [
+            "bitfinex",
+            "kraken",
+            "poloniex"
+        ]
+    },
+    "markets": {
+        "include": [
+            "spot"
         ]
     },
     "bases": {
-        "exclude": [
-            "usd",
-            "usdt"
+        "include": [
+            "ada",
+            "bch",
+            "btc",
+            "dash",
+            "eos",
+            "etc",
+            "eth",
+            "link",
+            "ltc",
+            "rep",
+            "trx",
+            "usdc",
+            "usdt",
+            "xmr",
+            "xrp",
+            "xtz"
         ]
     },
     "quotes": {
         "include": [
-            "usd",
-            "usdt"
+            "usd"
         ]
     },
     "logging": "info"

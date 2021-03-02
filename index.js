@@ -1,11 +1,12 @@
 'use strict';
 const ccxt = require('ccxt');
 const { includeExchange, includeMarket, debug, info, warn } = require('./utils');
+const { marketReport } = require('./stats');
 
 (async function () {
 
     const markets = await loadMarkets();
-    info(JSON.stringify(markets, null, 2));
+    info(JSON.stringify(marketReport(markets), null, 2));
 
 })();
 
