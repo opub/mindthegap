@@ -3,44 +3,67 @@ const ccxt = require('ccxt');
 const { includeExchange, includeMarket, debug, info, warn } = require('./utils');
 const { marketReport } = require('./stats');
 
+const exchangeCache = new Map();
+
 (async function () {
+    const started = Date.now();
+    info('started');
 
     const markets = await loadMarkets();
     info(JSON.stringify(marketReport(markets), null, 2));
 
+    info('elapsed', ((Date.now()-started)/1000).toFixed(3));
+    info('completed');
 })();
 
 async function loadMarkets() {
     info('loading markets');
-    let loaded = [];
+    const jobs = [];
 
-    for (const ex of ccxt.exchanges) {
-        try {
-            if (includeExchange(ex)) {
-                const exClient = new ccxt[ex]();
-                const markets = await exClient.loadMarkets();
-                const filtered = filterMarkets(markets);
-                if (filtered.length > 0) {
-                    filtered.sort(compareMarkets);
-                    loaded.push({
-                        id: ex,
-                        markets: filtered
-                    });
-                    debug(ex, 'loaded');
-                } else {
-                    debug(ex, 'empty');
-                }
-            } else {
-                debug(ex, 'excluded');
-            }
-        }
-        catch (e) {
-            warn(ex, 'failed', e.message.indexOf('\n') > 0 ? e.message.substring(0, e.message.indexOf('\n')) : e.message);
+    for (const name of ccxt.exchanges) {
+        const exchange = new ccxt[name]();
+        if (includeExchange(exchange)) {
+            exchangeCache.set(name, exchange);
+            jobs.push(loadMarket(exchange));
+        } else {
+            debug(name, 'excluded');
         }
     }
 
+    const loaded = [];
+    await Promise.allSettled(jobs).then((results) => {
+        for (const result of results) {
+            if (result.status === 'fulfilled' && result.value) {
+                loaded.push(result.value);
+            }
+        }
+    });
     info('loaded markets', loaded.length);
     return loaded;
+}
+
+async function loadMarket(exchange) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const markets = await exchange.loadMarkets();
+            const filtered = filterMarkets(markets);
+            if (filtered.length > 0) {
+                filtered.sort(compareMarkets);
+                debug(exchange.id, 'loaded');
+                resolve({
+                    id: exchange.id,
+                    markets: filtered
+                });
+            } else {
+                debug(exchange.id, 'empty');
+                resolve();
+            }
+        }
+        catch(e) {
+            warn(exchange.id, 'failed', e.message.indexOf('\n') > 0 ? e.message.substring(0, e.message.indexOf('\n')) : e.message);
+            reject(e);
+        }
+    });
 }
 
 function compareMarkets(a, b) {
@@ -48,7 +71,7 @@ function compareMarkets(a, b) {
 }
 
 function filterMarkets(markets) {
-    let filtered = [];
+    const filtered = [];
     for (const value of Object.values(markets)) {
         if (includeMarket(value)) {
             filtered.push(value);

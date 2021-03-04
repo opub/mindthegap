@@ -1,12 +1,6 @@
 {
     "exchanges": {
-        "exclude": [
-            "btcturk",
-            "buda",
-            "coinegg",
-            "coingi",
-            "okex"
-        ],
+        "country": "US",
         "shorts": [
             "bitfinex",
             "kraken",

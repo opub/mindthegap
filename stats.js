@@ -7,7 +7,7 @@ module.exports.marketReport = function (data) {
     data.forEach(e => {
         exchanges.add(e.id);
         e.markets.forEach(m => {
-            markets.add(m.id);
+            markets.add(m.symbol);
             bases.add(m.base);
             quotes.add(m.quote);
         });

@@ -1,7 +1,10 @@
 const settings = require('./settings.json');
 
-module.exports.includeExchange = function (name) {
-    return filter(name, settings.exchanges);
+// filtering 
+
+module.exports.includeExchange = function (exchange) {
+    return filter(exchange.id, settings.exchanges)
+        && (!settings.exchanges.country || exchange.countries.includes(settings.exchanges.country));
 }
 
 module.exports.includeMarket = function (market) {
@@ -10,6 +13,13 @@ module.exports.includeMarket = function (market) {
         && filter(market.base.toLowerCase(), settings.bases)
         && filter(market.quote.toLowerCase(), settings.quotes);
 }
+
+function filter(name, values) {
+    return !(name && values && (values.include && !values.include.includes(name)
+        || values.exclude && values.exclude.includes(name)));
+}
+
+// logging
 
 module.exports.debug = function () {
     if (settings.logging === 'debug') {
@@ -38,9 +48,4 @@ function writeLog(level, params) {
         || (settings.logging === level)) {
         console.log(new Date().toISOString(), level.toUpperCase(), ...params);
     }
-}
-
-function filter(name, values) {
-    return !(name && values && (values.include && !values.include.includes(name)
-        || values.exclude && values.exclude.includes(name)));
 }
