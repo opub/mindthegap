@@ -1,7 +1,7 @@
 'use strict';
 const ccxt = require('ccxt');
 const { includeExchange, includeMarket, debug, info, warn } = require('./utils');
-const { marketReport } = require('./stats');
+const { marketReport, priceRport } = require('./stats');
 
 const exchangeCache = new Map();
 
@@ -13,9 +13,9 @@ const exchangeCache = new Map();
     info(JSON.stringify(marketReport(markets), null, 2));
 
     const prices = await getMarketPrices(markets);
-    info(JSON.stringify(prices, null, 2));
+    info(JSON.stringify(priceRport(prices), null, 2));
 
-    info('elapsed', ((Date.now()-started)/1000).toFixed(3));
+    info('elapsed', ((Date.now() - started) / 1000).toFixed(3));
     info('completed');
 })();
 
@@ -27,11 +27,11 @@ async function getMarketPrices(markets) {
         jobs.push(getMarketPrice(m));
     }
 
-    const loaded = [];
+    let loaded = [];
     await Promise.allSettled(jobs).then((results) => {
         for (const result of results) {
             if (result.status === 'fulfilled' && result.value) {
-                loaded.push(result.value);
+                loaded = loaded.concat(result.value);
             }
         }
     });
@@ -40,23 +40,22 @@ async function getMarketPrices(markets) {
 
 async function getMarketPrice(marketSet) {
     return new Promise(async (resolve, reject) => {
-        try {
-            let prices = [];
-            const exchange = exchangeCache.get(marketSet.id);
-            for (const m of marketSet.markets) {
-                let orderbook = await exchange.fetchOrderBook (m.symbol);
+        let prices = [];
+        const exchange = exchangeCache.get(marketSet.id);
+        for (const m of marketSet.markets) {
+            try {
+                let orderbook = await exchange.fetchOrderBook(m.symbol);
                 let bid = orderbook.bids.length ? orderbook.bids[0][0] : undefined;
                 let ask = orderbook.asks.length ? orderbook.asks[0][0] : undefined;
                 let spread = (bid && ask) ? ask - bid : undefined;
                 debug(exchange.id, m.symbol, 'loaded market price');
                 prices.push({ id: exchange.id, symbol: m.symbol, bid, ask, spread });
             }
-            resolve(prices);
+            catch (e) {
+                warn(marketSet.id, 'failed', e.message.indexOf('\n') > 0 ? e.message.substring(0, e.message.indexOf('\n')) : e.message);
+            }
         }
-        catch(e) {
-            warn(marketSet.id, 'failed', e.message.indexOf('\n') > 0 ? e.message.substring(0, e.message.indexOf('\n')) : e.message);
-            reject(e);
-        }
+        resolve(prices);
     });
 }
 
@@ -65,7 +64,7 @@ async function loadMarkets() {
     const jobs = [];
 
     for (const name of ccxt.exchanges) {
-        const exchange = new ccxt[name]();
+        const exchange = new ccxt[name]({ rateLimit: 1000, enableRateLimit: true });
         if (includeExchange(exchange)) {
             exchangeCache.set(name, exchange);
             jobs.push(loadMarket(exchange));
@@ -102,7 +101,7 @@ async function loadMarket(exchange) {
                 resolve();
             }
         }
-        catch(e) {
+        catch (e) {
             warn(exchange.id, 'failed', e.message.indexOf('\n') > 0 ? e.message.substring(0, e.message.indexOf('\n')) : e.message);
             reject(e);
         }
