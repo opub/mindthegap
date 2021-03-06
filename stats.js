@@ -1,4 +1,6 @@
-module.exports.marketReport = function (data) {
+const config = require('config').get('exchanges');
+
+exports.marketReport = function (data) {
     let exchanges = new Set();
     let markets = new Set();
     let bases = new Set();
@@ -21,19 +23,21 @@ module.exports.marketReport = function (data) {
     }
 }
 
-module.exports.priceRport = function (data) {
+exports.priceRport = function (data) {
     let prices = new Map();
 
     for (const item of data) {
-        let values = prices.has(item.symbol) ? prices.get(item.symbol) : { symbol: item.symbol, lowAsk: Number.MAX_VALUE, highBid: 0 };
+        let values = prices.has(item.symbol) ? prices.get(item.symbol) : { symbol: item.symbol, lowBid: Number.MAX_VALUE, highBid: 0 };
 
-        if (item.ask < values.lowAsk) {
-            values.lowAsk = item.ask;
+        if (item.bid < values.lowBid) {
+            values.lowBid = item.bid;
             values.lowExchange = item.id;
+            values.lowFee = item.fee;
         }
-        if (item.bid > values.highBid) {
+        if (item.bid > values.highBid && (!config.shorts || config.shorts.includes(item.id))) {
             values.highBid = item.bid;
             values.highExchange = item.id;
+            values.highFee = item.fee;
         }
 
         prices.set(item.symbol, values);
@@ -41,10 +45,12 @@ module.exports.priceRport = function (data) {
 
     let results = [];
     for (const item of prices.values()) {
-        if (item.lowExchange !== item.highExchange) {
-            item.spread = item.lowAsk - item.highBid;
-            item.spreadPercent = item.spread / item.lowAsk * 100.0;
-            results.push(item);
+        if (item.lowExchange !== item.highExchange && item.highBid > 0) {
+            item.spread = item.highBid - item.lowBid;
+            item.spreadPercent = (item.spread / item.highBid - item.lowFee - item.highFee) * 100.0;
+            if (item.spreadPercent > 0) {
+                results.push(item);
+            }
         }
     }
     results.sort(comparePrices);
@@ -52,5 +58,5 @@ module.exports.priceRport = function (data) {
 }
 
 function comparePrices(a, b) {
-    return a.spread - b.spread;
+    return b.spreadPercent - a.spreadPercent;
 }
