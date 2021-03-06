@@ -1,4 +1,22 @@
 const config = require('config').get('exchanges');
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+
+const csvWriter = createCsvWriter({
+    append: true,
+    path: 'results.csv',
+    header: [
+        { id: 'date', title: 'Date' },
+        { id: 'symbol', title: 'Symbol' },
+        { id: 'spread', title: 'Spread' },
+        { id: 'spreadPercent', title: 'Percent' },
+        { id: 'lowExchange', title: 'Low Exchange' },
+        { id: 'lowBid', title: 'Low Bid' },
+        { id: 'lowFee', title: 'Low Fee' },
+        { id: 'highExchange', title: 'High Exchange' },
+        { id: 'highBid', title: 'High Bid' },
+        { id: 'highFee', title: 'High Fee' }
+    ]
+});
 
 exports.marketReport = function (data) {
     let exchanges = new Set();
@@ -27,7 +45,7 @@ exports.priceRport = function (data) {
     let prices = new Map();
 
     for (const item of data) {
-        let values = prices.has(item.symbol) ? prices.get(item.symbol) : { symbol: item.symbol, lowBid: Number.MAX_VALUE, highBid: 0 };
+        let values = prices.has(item.symbol) ? prices.get(item.symbol) : { date: new Date().toISOString(), symbol: item.symbol, lowBid: Number.MAX_VALUE, highBid: 0 };
 
         if (item.bid < values.lowBid) {
             values.lowBid = item.bid;
@@ -54,9 +72,14 @@ exports.priceRport = function (data) {
         }
     }
     results.sort(comparePrices);
+    saveResults(results);
     return results;
 }
 
 function comparePrices(a, b) {
     return b.spreadPercent - a.spreadPercent;
+}
+
+async function saveResults(prices) {
+    return csvWriter.writeRecords(prices);
 }

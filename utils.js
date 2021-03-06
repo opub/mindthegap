@@ -8,7 +8,7 @@ exports.includeExchange = function (exchange) {
 }
 
 exports.includeMarket = function (market) {
-    return market.active
+    return market.active && !market.darkpool
         && filter(market.type ? market.type.toLowerCase() : market.type, config.markets)
         && filter(market.base.toLowerCase(), config.bases)
         && filter(market.quote.toLowerCase(), config.quotes);

@@ -5,7 +5,8 @@
   "main": "index.js",
   "dependencies": {
     "ccxt": "^1.42.45",
-    "config": "^3.3.4"
+    "config": "^3.3.4",
+    "csv-writer": "^1.6.0"
   },
   "devDependencies": {},
   "scripts": {
