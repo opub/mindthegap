@@ -89,10 +89,12 @@ exports.report = function (data) {
         });
     });
 
-    return {
+    let results = {
         exchanges: { count: exchanges.size, names: Array.from(exchanges.values()) },
         markets: { count: markets.size, names: Array.from(markets.values()) },
         bases: { count: bases.size, names: Array.from(bases.values()) },
         quotes: { count: quotes.size, names: Array.from(quotes.values()) }
-    }
+    };
+
+    log.info(JSON.stringify(results, null, 2));
 }

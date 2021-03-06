@@ -1,16 +1,16 @@
 const { getExchange } = require('./exchange');
+const action = require('./action');
 const log = require('./logging');
 const config = require('config').get('exchanges');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
-exports.getPrices = async function (markets) {
-    log.info('getting market prices');
+exports.getSpreads = async function (markets) {
+    log.info('getting spreads');
     const jobs = [];
 
     for (const m of markets) {
         jobs.push(fetchMarketPrices(m));
     }
-
     let loaded = [];
     await Promise.allSettled(jobs).then((results) => {
         for (const result of results) {
@@ -19,7 +19,8 @@ exports.getPrices = async function (markets) {
             }
         }
     });
-    return loaded;
+
+    return filterSpreads(loaded);
 };
 
 async function fetchMarketPrices(marketSet) {
@@ -43,11 +44,11 @@ async function fetchMarketPrices(marketSet) {
     });
 }
 
-exports.report = function (data) {
+function filterSpreads(data) {
     let prices = new Map();
 
     for (const item of data) {
-        let values = prices.has(item.symbol) ? prices.get(item.symbol) : { date: new Date(), symbol: item.symbol, lowBid: Number.MAX_VALUE, highBid: 0 };
+        let values = prices.has(item.symbol) ? prices.get(item.symbol) : { date: new Date(), symbol: item.symbol, lowBid: Number.MAX_VALUE, highBid: 0, markets: [] };
 
         if (item.bid < values.lowBid) {
             values.lowBid = item.bid;
@@ -59,23 +60,29 @@ exports.report = function (data) {
             values.highExchange = item.id;
             values.highFee = item.fee;
         }
+        values.markets.push(item);
 
         prices.set(item.symbol, values);
     }
 
     let results = [];
     for (const item of prices.values()) {
-        if (item.lowExchange !== item.highExchange && item.highBid > 0) {
+        let watching = action.watching(item);
+        if (watching || item.lowExchange !== item.highExchange && item.highBid > 0) {
             item.spread = item.highBid - item.lowBid;
             item.spreadPercent = (item.spread / item.highBid - item.lowFee - item.highFee) * 100.0;
-            if (item.spreadPercent > 0) {
+            if (watching || item.spreadPercent > 0) {
                 results.push(item);
             }
         }
     }
     results.sort(comparePrices);
-    saveResults(results);
     return results;
+}
+
+exports.report = function (data) {
+    saveResults(data);
+    log.info(JSON.stringify(data, null, 2));
 }
 
 function comparePrices(a, b) {

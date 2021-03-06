@@ -11,10 +11,10 @@ async function runner() {
     log.info('started');
 
     const markets = await exchange.loadMarkets();
-    log.info(JSON.stringify(exchange.report(markets), null, 2));
+    exchange.report(markets);
 
-    const prices = await market.getPrices(markets);
-    log.info(JSON.stringify(market.report(prices), null, 2));
+    const spreads = await market.getSpreads(markets);
+    market.report(spreads);
 
     log.info('completed', ((Date.now() - started) / 1000).toFixed(3));
 
