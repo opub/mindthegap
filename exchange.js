@@ -54,7 +54,7 @@ async function loadMarket(exchange) {
         }
         catch (e) {
             let msg = e.toString();
-            log.warn(exchange.id, 'failed', msg.indexOf('\n') > 0 ? msg.substring(0, msg.indexOf('\n')) : msg);
+            log.warn(exchange.id, 'loadMarket failed', msg.indexOf('\n') > 0 ? msg.substring(0, msg.indexOf('\n')) : msg);
             reject(e);
         }
     });
