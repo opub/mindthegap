@@ -1,9 +1,10 @@
 'use strict';
 const exchange = require('./exchange');
 const market = require('./market');
+const action = require('./action');
 const log = require('./logging');
 
-const CONTINUOUS = false;
+const CONTINUOUS = true;
 const RUNINTERVAL = 30000;
 
 async function runner() {
@@ -15,6 +16,7 @@ async function runner() {
 
     const spreads = await market.getSpreads(markets);
     market.report(spreads);
+    await action.process(spreads);
 
     log.info('completed', ((Date.now() - started) / 1000).toFixed(3));
 

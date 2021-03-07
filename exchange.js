@@ -96,5 +96,5 @@ exports.report = function (data) {
         quotes: { count: quotes.size, names: Array.from(quotes.values()) }
     };
 
-    log.info(JSON.stringify(results, null, 2));
+    log.debug(JSON.stringify(results, null, 2));
 }

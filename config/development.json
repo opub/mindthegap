@@ -5,6 +5,10 @@
             "bitfinex",
             "kraken",
             "poloniex"
+        ],
+        "exclude": [
+            "coingi",
+            "coinmarketcap"
         ]
     },
     "markets": {

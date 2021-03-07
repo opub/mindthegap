@@ -82,7 +82,7 @@ function filterSpreads(data) {
 
 exports.report = function (data) {
     saveResults(data);
-    log.info(JSON.stringify(data, null, 2));
+    log.debug(JSON.stringify(data, null, 2));
 }
 
 function comparePrices(a, b) {
