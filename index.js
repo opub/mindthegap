@@ -7,20 +7,20 @@ const config = require('config');
 
 const CONTINUOUS = config.get('continuous');
 const RUNINTERVAL = config.get('runInterval');
-let count = 1;
+let count = 0;
 
 async function runner() {
     const started = Date.now();
     log.debug('started');
 
-    const markets = await exchange.loadMarkets();
+    const markets = await exchange.loadMarkets(count % config.get('reloadRate'));
     exchange.report(markets);
 
     const spreads = await market.getSpreads(markets);
     market.report(spreads);
     await action.process(spreads);
 
-    log.info('completed', count++, ((Date.now() - started) / 1000).toFixed(3));
+    log.info('completed', ++count, ((Date.now() - started) / 1000).toFixed(3));
 
     if(CONTINUOUS) {
         setTimeout(runner, RUNINTERVAL);

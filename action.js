@@ -9,6 +9,10 @@ exports.watching = function(item) {
     return watchList.has(item.symbol);
 };
 
+exports.getWatched = function(item) {
+    return watchList.get(item.symbol);
+};
+
 exports.process = async function(spreads) {
     for(const spread of spreads) {
         let symbol = spread.symbol;

@@ -10,7 +10,7 @@ exports.getExchange = function (id) {
     return exchangeCache.get(id);
 };
 
-exports.loadMarkets = async function () {
+exports.loadMarkets = async function (reload) {
     log.debug('loading markets');
     const jobs = [];
 
@@ -18,7 +18,7 @@ exports.loadMarkets = async function () {
         const exchange = new ccxt[name]({ rateLimit: RATELIMIT, enableRateLimit: true });
         if (includeExchange(exchange)) {
             exchangeCache.set(name, exchange);
-            jobs.push(loadMarket(exchange));
+            jobs.push(loadMarket(exchange, reload));
         } else {
             log.debug(name, 'excluded');
         }
@@ -35,10 +35,10 @@ exports.loadMarkets = async function () {
     return loaded;
 };
 
-async function loadMarket(exchange) {
+async function loadMarket(exchange, reload) {
     return new Promise(async (resolve, reject) => {
         try {
-            const markets = await exchange.loadMarkets(true);
+            const markets = await exchange.loadMarkets(reload);
             const filtered = filterMarkets(markets);
             if (filtered.length > 0) {
                 filtered.sort(compareMarkets);

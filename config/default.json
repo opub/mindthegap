@@ -1,11 +1,12 @@
 {
     "continuous": true,
     "runInterval": 20000,
+    "reloadRate": 10,
     "rateLimit": 500,
     "openThreshold": 2.8,
     "closeProfit": 2.0,
     "logging": "info",
-    "results": "output/results.csv",
+    "output": "output/",
     "exchanges": {},
     "markets": {},
     "bases": {},
