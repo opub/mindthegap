@@ -1,7 +1,13 @@
 {
+    "continuous": true,
+    "runInterval": 20000,
+    "rateLimit": 500,
+    "openThreshold": 2.8,
+    "closeProfit": 2.0,
+    "logging": "info",
+    "results": "output/results.csv",
     "exchanges": {},
     "markets": {},
     "bases": {},
-    "quotes": {},
-    "logging": "info"
+    "quotes": {}
 }

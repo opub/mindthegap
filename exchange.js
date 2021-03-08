@@ -1,17 +1,17 @@
 const ccxt = require('ccxt');
-
 const { includeExchange, includeMarket } = require('./utils');
-
-const RATELIMIT = 500;
-const exchangeCache = new Map();
 const log = require('./logging');
+const config = require('config');
+
+const RATELIMIT = config.get('rateLimit');
+const exchangeCache = new Map();
 
 exports.getExchange = function (id) {
     return exchangeCache.get(id);
 };
 
 exports.loadMarkets = async function () {
-    log.info('loading markets');
+    log.debug('loading markets');
     const jobs = [];
 
     for (const name of ccxt.exchanges) {

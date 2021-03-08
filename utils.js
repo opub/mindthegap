@@ -1,6 +1,11 @@
 const config = require('config');
 
-// filtering 
+exports.round = function (number, decimalPlaces) {
+    const factorOfTen = Math.pow(10, decimalPlaces);
+    return Math.round(number * factorOfTen) / factorOfTen;
+}
+
+// filtering
 
 exports.includeExchange = function (exchange) {
     return filter(exchange.id, config.exchanges)

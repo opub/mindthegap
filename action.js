@@ -1,7 +1,8 @@
 const log = require('./logging');
+const config = require('config');
 
-const OPEN_THRESHOLD = 2.5;
-const CLOSE_THRESHOLD = 0.1;
+const OPEN_THRESHOLD = config.get('openThreshold');
+const CLOSE_PROFIT = config.get('closeProfit');
 const watchList = new Map();
 
 exports.watching = function(item) {
@@ -16,15 +17,16 @@ exports.process = async function(spreads) {
                 log.info('OPENING', spread);
                 watchList.set(symbol, spread);
             } else {
-                log.info('passing on', symbol);
+                log.info('passing on', symbol, spread.spreadPercent);
             }
         } 
         else {
-            if(spread.spreadPercent <= CLOSE_THRESHOLD) {
-                log.info('CLOSING', spread);
+            let previous = watchList.get(symbol);
+            if(spread.spreadPercent <= previous.spreadPercent - CLOSE_PROFIT) {
+                log.info('CLOSING', previous.spreadPercent, spread);
                 watchList.delete(symbol);
             } else {
-                log.info('already watching', symbol);
+                log.info('already watching', symbol, previous.spreadPercent, spread.spreadPercent);
             }
         }
     }
