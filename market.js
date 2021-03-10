@@ -51,35 +51,38 @@ function filterSpreads(data) {
     let prices = new Map();
 
     for (const item of data) {
-        let watching = action.watching(item);
-        let watched = watching ? action.getWatched(item) : undefined;
+        let symbol = item.symbol;
+        let watching = action.getWatched(symbol);
         let shortable = !config.get('exchanges').shorts || config.get('exchanges').shorts.includes(item.id);
-        let values = prices.has(item.symbol) ? prices.get(item.symbol) : { date: new Date(), symbol: item.symbol, lowBid: Number.MAX_VALUE, highBid: 0, markets: [] };
+        let values = prices.has(symbol) ? prices.get(symbol) : { date: new Date(), symbol, markets: [] };
 
         // determine high and low bids for optimal spread unless already watching a combo
-        if (!watching && item.bid < values.lowBid || watching && watched.lowExchange === item.id) {
-            values.lowBid = item.bid;
-            values.lowExchange = item.id;
-            values.lowFee = item.fee;
+        if (!watching && (!values.low || item.bid < values.low.bid) || watching && watched.low.id === item.id) {
+            values.low = item;
         }
-        if (!watching && shortable && item.bid > values.highBid  || watching && watched.highExchange === item.id) {
-            values.highBid = item.bid;
-            values.highExchange = item.id;
-            values.highFee = item.fee;
+        if (!watching && (!values.high || item.bid > values.high.bid) || watching && watched.high.id === item.id) {
+            values.high = item;
+        }
+        if (!watching && shortable && (!values.short || item.bid > values.short.bid) || watching && watched.short.id === item.id) {
+            values.short = item;
         }
         values.markets.push(item);
 
-        prices.set(item.symbol, values);
+        prices.set(symbol, values);
     }
 
     let results = [];
     for (const item of prices.values()) {
-        let watching = action.watching(item);
-        if (watching || item.lowExchange !== item.highExchange && item.highBid > 0) {
-            item.spread = round(item.highBid - item.lowBid, 8);
+        item.spread = {};
+        item.spreadPercent = {};
+        let watching = action.watching(item.symbol);
+        if (watching || item.low && item.high && item.low.id !== item.high.id && item.high.bid) {
+            item.spread.best = getSpread(item.high, item.low);
+            if(item.short) item.spread.short = getSpread(item.short, item.low);
             // spread percent factors in buying and selling fees to get more accurate profit percent
-            item.spreadPercent = round((item.spread / item.highBid - (item.lowFee * 2) - (item.highFee * 2)) * 100.0, 8);
-            if (watching || item.spreadPercent > 0) {
+            item.spreadPercent.best = getSpreadPercent(item.spread.best, item.high, item.low);
+            if(item.short) item.spreadPercent.short = getSpreadPercent(item.spread.short, item.short, item.low);
+            if (watching || item.spreadPercent.best > 0 || item.spreadPercent.short > 0) {
                 results.push(item);
             }
         }
@@ -93,8 +96,30 @@ exports.report = function (data) {
     log.debug(JSON.stringify(data, null, 2));
 }
 
+function getSpread(high, low) {
+    let spread = high.bid - low.bid;
+    if(high.percentage === false) {
+        spread -= high.fee * 2;
+    }
+    if(low.percentage === false) {
+        spread -= low.fee * 2;
+    }
+    return round(spread, 8)
+}
+
+function getSpreadPercent(spread, high, low) {
+    let percent = spread / high.bid;
+    if(high.percentage !== false) {
+        percent -= high.fee * 2;
+    }
+    if(low.percentage !== false) {
+        percent -= low.fee * 2;
+    }
+    return round(percent * 100.0, 8)
+}
+
 function comparePrices(a, b) {
-    return b.spreadPercent - a.spreadPercent;
+    return b.spreadPercent.best - a.spreadPercent.best;
 }
 
 async function saveResults(prices) {
@@ -116,14 +141,14 @@ function getWriter(symbol) {
             path: config.get('output') + key + '.csv',
             header: [
                 { id: 'date', title: 'Date' },
-                { id: 'spreadPercent', title: 'Percent' },
-                { id: 'spread', title: 'Spread' },
-                { id: 'lowExchange', title: 'Low Exchange' },
-                { id: 'highExchange', title: 'High Exchange' },
-                { id: 'lowBid', title: 'Low Bid' },
-                { id: 'highBid', title: 'High Bid' },
-                { id: 'lowFee', title: 'Low Fee' },
-                { id: 'highFee', title: 'High Fee' },
+                { id: 'spreadPercent.best', title: 'Percent' },
+                { id: 'spread.best', title: 'Spread' },
+                { id: 'low.id', title: 'Low Exchange' },
+                { id: 'high.id', title: 'High Exchange' },
+                { id: 'low.bid', title: 'Low Bid' },
+                { id: 'high.bid', title: 'High Bid' },
+                { id: 'low.fee', title: 'Low Fee' },
+                { id: 'high.fee', title: 'High Fee' },
                 { id: 'symbol', title: 'Symbol' }
             ]
         });

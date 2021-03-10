@@ -1,23 +1,26 @@
 const log = require('./logging');
 const config = require('config');
 
-const OPEN_THRESHOLD = config.get('openThreshold');
-const CLOSE_PROFIT = config.get('closeProfit');
+const ARBITRAGE_THRESHOLD = config.get('arbitrageThreshold');
+const OPEN_SHORT_THRESHOLD = config.get('openShortThreshold');
+const CLOSE_SHORT_PROFIT = config.get('closeShortProfit');
 const watchList = new Map();
 
-exports.watching = function(item) {
-    return watchList.has(item.symbol);
+exports.watching = function(symbol) {
+    return watchList.has(symbol);
 };
 
-exports.getWatched = function(item) {
-    return watchList.get(item.symbol);
+exports.getWatched = function(symbol) {
+    return watchList.get(symbol);
 };
 
 exports.process = async function(spreads) {
     for(const spread of spreads) {
         let symbol = spread.symbol;
         if(!watchList.has(symbol)) {
-            if(spread.spreadPercent >= OPEN_THRESHOLD) {
+            if(spread.spreadPercent.best >= ARBITRAGE_THRESHOLD) {
+                log.info('ARBITRAGE', spread);
+            } else if(spread.spreadPercent.short >= OPEN_SHORT_THRESHOLD) {
                 log.info('OPENING', spread);
                 watchList.set(symbol, spread);
             } else {
@@ -26,11 +29,11 @@ exports.process = async function(spreads) {
         } 
         else {
             let previous = watchList.get(symbol);
-            if(spread.spreadPercent <= previous.spreadPercent - CLOSE_PROFIT) {
-                log.info('CLOSING', previous.spreadPercent, spread);
+            if(spread.spreadPercent.short <= previous.spreadPercent.short - CLOSE_SHORT_PROFIT) {
+                log.info('CLOSING', previous.spreadPercent.short, spread);
                 watchList.delete(symbol);
             } else {
-                log.info('already watching', symbol, previous.spreadPercent, spread.spreadPercent);
+                log.info('already watching', symbol, previous.spreadPercent.short, spread.spreadPercent.short);
             }
         }
     }

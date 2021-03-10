@@ -6,8 +6,12 @@ const config = require('config');
 const RATELIMIT = config.get('rateLimit');
 const exchangeCache = new Map();
 
-exports.getExchange = function (id) {
-    return exchangeCache.get(id);
+exports.getExchange = function (name) {
+    if(exchangeCache.has(name)) {
+        return exchangeCache.get(name);
+    } else {
+        return new ccxt[name]({ rateLimit: RATELIMIT, enableRateLimit: true });
+    }
 };
 
 exports.loadMarkets = async function (reload) {
