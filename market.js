@@ -35,7 +35,7 @@ async function fetchMarketPrices(marketSet) {
                 let ask = orderbook && orderbook.asks && orderbook.asks.length ? orderbook.asks[0][0] : undefined;
                 if(bid && ask) {
                     log.debug(exchange.id, m.symbol, 'loaded market price');
-                    prices.push({ id: exchange.id, symbol: m.symbol, bid, ask, fee: Math.max(m.maker, m.taker), percentage: m.percentage });
+                    prices.push({ time: Date.now(), exchange: exchange.id, symbol: m.symbol, bid, ask, maker: m.maker, taker: m.taker, percentage: m.percentage });
                 }
             }
             catch (e) {
@@ -99,10 +99,10 @@ exports.report = function (data) {
 function getSpread(high, low) {
     let spread = high.bid - low.bid;
     if(high.percentage === false) {
-        spread -= high.fee * 2;
+        spread -= Math.max(high.maker, high.taker) * 2;
     }
     if(low.percentage === false) {
-        spread -= low.fee * 2;
+        spread -= Math.max(low.maker, low.taker) * 2;
     }
     return round(spread, 8)
 }
@@ -110,10 +110,10 @@ function getSpread(high, low) {
 function getSpreadPercent(spread, high, low) {
     let percent = spread / high.bid;
     if(high.percentage !== false) {
-        percent -= high.fee * 2;
+        percent -= Math.max(high.maker, high.taker) * 2;
     }
     if(low.percentage !== false) {
-        percent -= low.fee * 2;
+        percent -= Math.max(low.maker, low.taker) * 2;
     }
     return round(percent * 100.0, 8)
 }

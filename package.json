@@ -4,11 +4,11 @@
   "description": "Cryptocurrency Arbitrage Bot",
   "main": "index.js",
   "dependencies": {
+    "better-sqlite3": "^7.1.2",
     "ccxt": "^1.42.45",
     "config": "^3.3.4",
     "csv-writer": "^1.6.0"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
