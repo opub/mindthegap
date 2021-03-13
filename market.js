@@ -3,7 +3,7 @@ const action = require('./action');
 const log = require('./logging');
 const config = require('config');
 const {round} = require('./utils');
-const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+const db = require('./db');
 
 exports.getSpreads = async function (markets) {
     log.debug('getting spreads');
@@ -20,9 +20,31 @@ exports.getSpreads = async function (markets) {
             }
         }
     });
+    report(loaded);
+    db.insertPrices(loaded);
 
-    return filterSpreads(loaded);
+    const filtered = filterSpreads(loaded);
+    log.debug(filtered);
+    return filtered;
 };
+
+function report(prices) {
+    if(log.willLog('debug')) {
+        let results = new Map();
+    
+        for(const p of prices) {
+            let values = results.has(p.symbol) ? results.get(p.symbol) : { exchanges: [], bids: [], asks: [], makers: [], takers: [] };
+            values.exchanges.push(p.exchange);            
+            values.bids.push(p.bid);
+            values.asks.push(p.ask);
+            values.makers.push(p.maker);
+            values.takers.push(p.taker);
+            results.set(p.symbol, values);
+        }
+
+        log.debug(results);
+    }
+}
 
 async function fetchMarketPrices(marketSet) {
     return new Promise(async (resolve, reject) => {
@@ -35,7 +57,7 @@ async function fetchMarketPrices(marketSet) {
                 let ask = orderbook && orderbook.asks && orderbook.asks.length ? orderbook.asks[0][0] : undefined;
                 if(bid && ask) {
                     log.debug(exchange.id, m.symbol, 'loaded market price');
-                    prices.push({ time: Date.now(), exchange: exchange.id, symbol: m.symbol, bid, ask, maker: m.maker, taker: m.taker, percentage: m.percentage });
+                    prices.push({ time: Date.now(), exchange: exchange.id, symbol: m.symbol, bid, ask, maker: m.maker, taker: m.taker, percentage: (m.percentage || m.percentage === undefined) });
                 }
             }
             catch (e) {
@@ -53,21 +75,19 @@ function filterSpreads(data) {
     for (const item of data) {
         let symbol = item.symbol;
         let watching = action.getWatched(symbol);
-        let shortable = !config.get('exchanges').shorts || config.get('exchanges').shorts.includes(item.id);
-        let values = prices.has(symbol) ? prices.get(symbol) : { date: new Date(), symbol, markets: [] };
+        let shortable = !config.get('exchanges').shorts || config.get('exchanges').shorts.includes(item.exchange);
+        let values = prices.has(symbol) ? prices.get(symbol) : { date: new Date(), symbol };
 
         // determine high and low bids for optimal spread unless already watching a combo
-        if (!watching && (!values.low || item.bid < values.low.bid) || watching && watched.low.id === item.id) {
+        if (!watching && (!values.low || item.bid < values.low.bid) || watching && watched.low.exchange === item.exchange) {
             values.low = item;
         }
-        if (!watching && (!values.high || item.bid > values.high.bid) || watching && watched.high.id === item.id) {
+        if (!watching && (!values.high || item.bid > values.high.bid) || watching && watched.high.exchange === item.exchange) {
             values.high = item;
         }
-        if (!watching && shortable && (!values.short || item.bid > values.short.bid) || watching && watched.short.id === item.id) {
+        if (!watching && shortable && (!values.short || item.bid > values.short.bid) || watching && watched.short.exchange === item.exchange) {
             values.short = item;
         }
-        values.markets.push(item);
-
         prices.set(symbol, values);
     }
 
@@ -76,7 +96,7 @@ function filterSpreads(data) {
         item.spread = {};
         item.spreadPercent = {};
         let watching = action.watching(item.symbol);
-        if (watching || item.low && item.high && item.low.id !== item.high.id && item.high.bid) {
+        if (watching || item.low && item.high && item.low.exchange !== item.high.exchange && item.high.bid) {
             item.spread.best = getSpread(item.high, item.low);
             if(item.short) item.spread.short = getSpread(item.short, item.low);
             // spread percent factors in buying and selling fees to get more accurate profit percent
@@ -91,17 +111,12 @@ function filterSpreads(data) {
     return results;
 }
 
-exports.report = function (data) {
-    saveResults(data);
-    log.debug(JSON.stringify(data, null, 2));
-}
-
 function getSpread(high, low) {
     let spread = high.bid - low.bid;
-    if(high.percentage === false) {
+    if(!high.percentage) {
         spread -= Math.max(high.maker, high.taker) * 2;
     }
-    if(low.percentage === false) {
+    if(!low.percentage) {
         spread -= Math.max(low.maker, low.taker) * 2;
     }
     return round(spread, 8)
@@ -109,10 +124,10 @@ function getSpread(high, low) {
 
 function getSpreadPercent(spread, high, low) {
     let percent = spread / high.bid;
-    if(high.percentage !== false) {
+    if(high.percentage) {
         percent -= Math.max(high.maker, high.taker) * 2;
     }
-    if(low.percentage !== false) {
+    if(low.percentage) {
         percent -= Math.max(low.maker, low.taker) * 2;
     }
     return round(percent * 100.0, 8)
@@ -120,39 +135,4 @@ function getSpreadPercent(spread, high, low) {
 
 function comparePrices(a, b) {
     return b.spreadPercent.best - a.spreadPercent.best;
-}
-
-async function saveResults(prices) {
-    prices.forEach(item => {
-        item.date = item.date.toISOString();
-        getWriter(item.symbol).writeRecords([item]);
-    });
-}
-
-const writerCache = new Map();
-
-function getWriter(symbol) {
-    let key = symbol.replace(/\W/g, '');
-    if(writerCache.has(key)) {
-        return writerCache.get(key);
-    } else {
-        const writer = createCsvWriter({
-            append: true,
-            path: config.get('output') + key + '.csv',
-            header: [
-                { id: 'date', title: 'Date' },
-                { id: 'spreadPercent.best', title: 'Percent' },
-                { id: 'spread.best', title: 'Spread' },
-                { id: 'low.id', title: 'Low Exchange' },
-                { id: 'high.id', title: 'High Exchange' },
-                { id: 'low.bid', title: 'Low Bid' },
-                { id: 'high.bid', title: 'High Bid' },
-                { id: 'low.fee', title: 'Low Fee' },
-                { id: 'high.fee', title: 'High Fee' },
-                { id: 'symbol', title: 'Symbol' }
-            ]
-        });
-        writerCache.set(key, writer);
-        return writer;
-    }
 }

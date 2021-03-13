@@ -19,25 +19,24 @@
     "bases": {
         "include": [
             "ada",
+            "algo",
+            "atom",
             "bch",
             "btc",
             "dash",
+            "dot",
             "eos",
             "etc",
             "eth",
+            "fil",
             "link",
             "ltc",
+            "omg",
             "rep",
             "trx",
-            "xmr",
-            "xtz",
-            "algo",
             "xbt",
-            "atom",
-            "fil",
             "xlm",
-            "omg",
-            "dot"
+            "xtz"
         ]
     },
     "quotes": {

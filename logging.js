@@ -1,30 +1,42 @@
 const config = require('config').get('logging');
 
+const levels = {
+    none: 0,
+    error: 1,
+    warn: 2,
+    info: 3,
+    debug: 4
+};
+
+function willLog(level) {
+    return !config || levels[level] <= levels[config];
+}
+exports.willLog = willLog;
+
 exports.debug = function () {
-    if (config === 'debug') {
+    if (willLog('debug')) {
         writeLog('debug', arguments);
     }
 }
 
 exports.info = function () {
-    if (config === 'debug' || config === 'info') {
+    if (willLog('info')) {
         writeLog('info', arguments);
     }
 }
 
 exports.warn = function () {
-    if (!config || config === 'debug' || config === 'info' || config === 'warn') {
+    if (willLog('warn')) {
         writeLog('warn', arguments);
     }
 }
 
 exports.error = function () {
-    writeLog('error', arguments);
+    if (willLog('debug')) {
+        writeLog('error', arguments);
+    }
 }
 
 function writeLog(level, params) {
-    if (!config || config === 'debug' || (config === 'info' && level !== 'debug')
-        || (config === level)) {
-        console.log(new Date().toISOString(), level.toUpperCase(), ...params);
-    }
+    console.log(new Date().toISOString(), level.toUpperCase(), ...params);
 }
