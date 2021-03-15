@@ -74,18 +74,18 @@ function filterSpreads(data) {
 
     for (const item of data) {
         let symbol = item.symbol;
-        let watching = action.getWatched(symbol);
+        let watched = action.getWatched(symbol);
         let shortable = !config.get('exchanges').shorts || config.get('exchanges').shorts.includes(item.exchange);
         let values = prices.has(symbol) ? prices.get(symbol) : { date: new Date(), symbol };
 
         // determine high and low bids for optimal spread unless already watching a combo
-        if (!watching && (!values.low || item.bid < values.low.bid) || watching && watched.low.exchange === item.exchange) {
+        if (!watched && (!values.low || item.bid < values.low.bid) || watched && watched.low.exchange === item.exchange) {
             values.low = item;
         }
-        if (!watching && (!values.high || item.bid > values.high.bid) || watching && watched.high.exchange === item.exchange) {
+        if (!watched && (!values.high || item.bid > values.high.bid) || watched && watched.high.exchange === item.exchange) {
             values.high = item;
         }
-        if (!watching && shortable && (!values.short || item.bid > values.short.bid) || watching && watched.short.exchange === item.exchange) {
+        if (!watched && shortable && (!values.short || item.bid > values.short.bid) || watched && watched.short.exchange === item.exchange) {
             values.short = item;
         }
         prices.set(symbol, values);

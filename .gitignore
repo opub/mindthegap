@@ -5,8 +5,8 @@ logs
 # Dependency directories
 node_modules/
 
-# Results
-output/
+# Local testing
+test.js
 
 # Data
 *.db

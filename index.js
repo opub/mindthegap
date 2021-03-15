@@ -1,27 +1,26 @@
-'use strict';
-const exchange = require('./exchange');
-const market = require('./market');
-const action = require('./action');
+const express = require('express');
+const app = require('express')();
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
 const log = require('./logging');
-const config = require('config');
 
-const CONTINUOUS = config.get('continuous');
-const RUNINTERVAL = config.get('runInterval');
-let count = 0;
+require('./runner');
 
-async function runner() {
-    const started = Date.now();
-    log.debug('started');
+const port = process.env.PORT || 3000;
 
-    const markets = await exchange.loadMarkets(count % config.get('reloadRate'));
-    const spreads = await market.getSpreads(markets);
-    await action.process(spreads);
+app.use(express.static('static'));
 
-    log.info('completed', ++count, ((Date.now() - started) / 1000).toFixed(3));
+io.on('connection', (socket) => {
+    log.info('connected');
+    socket.on('disconnect', () => {
+        log.info('disconnected');
+    });
+});
 
-    if(CONTINUOUS) {
-        setTimeout(runner, RUNINTERVAL);
-    }
-}
+http.listen(port, () => {
+    console.log(`Socket.IO server running at http://localhost:${port}/`);
+});
 
-runner();
+exports.notify = function(event, args) {
+    io.emit(event, args);
+};

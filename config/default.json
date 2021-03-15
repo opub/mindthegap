@@ -1,6 +1,6 @@
 {
     "continuous": true,
-    "runInterval": 20000,
+    "runInterval": 5000,
     "reloadRate": 10,
     "rateLimit": 600,
     "arbitrageThreshold": 5.0,

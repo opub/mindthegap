@@ -6,9 +6,13 @@
   "dependencies": {
     "better-sqlite3": "^7.1.2",
     "ccxt": "^1.42.45",
-    "config": "^3.3.4"
+    "config": "^3.3.4",
+    "express": "^4.17.1",
+    "smoothie": "^1.35.0",
+    "socket.io": "^4.0.0"
   },
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/opub/arbitrage/issues"
   },
-  "homepage": "https://github.com/opub/arbitrage#readme"
+  "homepage": "https://github.com/opub/arbitrage#readme",
+  "nodemonConfig": {
+    "ext": "js,json,html"
+  }
 }
