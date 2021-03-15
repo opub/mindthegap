@@ -5,8 +5,8 @@
   "main": "index.js",
   "dependencies": {
     "better-sqlite3": "^7.1.2",
-    "ccxt": "^1.42.45",
-    "config": "^3.3.4",
+    "ccxt": "^1.43.25",
+    "config": "^3.3.6",
     "express": "^4.17.1",
     "smoothie": "^1.35.0",
     "socket.io": "^4.0.0"
