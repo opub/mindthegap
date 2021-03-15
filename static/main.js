@@ -27,10 +27,9 @@ function getChart(symbol) {
         canvas.id = 'chart-' + symbol.replace('/', '');
         canvas.width = 1600;
         canvas.height = 300;
-        canvas.setAttribute('style', 'z-index: 1; position:relative;');
         wrapper.appendChild(canvas);
 
-        var chart = new SmoothieChart({ grid: { strokeStyle: 'rgba(119,119,119,0.48)', millisPerLine: 20000, verticalSections: 6 }, tooltip: true, millisPerPixel: 500, minValueScale: 1.05, maxValueScale: 1.05 });
+        var chart = new SmoothieChart({ grid: { strokeStyle: 'rgba(119,119,119,0.48)', millisPerLine: 40000, verticalSections: 4 }, tooltip: true, millisPerPixel: 500, minValueScale: 1.05, maxValueScale: 1.05 });
         var best = new TimeSeries(), short = new TimeSeries();
         chart.addTimeSeries(best, { lineWidth: 3, strokeStyle: '#00ff88' });
         chart.addTimeSeries(short, { lineWidth: 3, strokeStyle: '#0088ff' });

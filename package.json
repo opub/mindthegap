@@ -26,6 +26,6 @@
   },
   "homepage": "https://github.com/opub/arbitrage#readme",
   "nodemonConfig": {
-    "ext": "js,json,html"
+    "ext": "js,json,html,css"
   }
 }
