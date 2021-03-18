@@ -32,11 +32,15 @@ exports.warn = function () {
 }
 
 exports.error = function () {
-    if (willLog('debug')) {
+    if (willLog('error')) {
         writeLog('error', arguments);
     }
 }
 
 function writeLog(level, params) {
-    console.log(new Date().toISOString(), level.toUpperCase(), ...params);
+    if(level === 'error') {
+        console.error(new Date().toISOString(), level.toUpperCase(), ...params);
+    } else {
+        console.log(new Date().toISOString(), level.toUpperCase(), ...params);
+    }
 }

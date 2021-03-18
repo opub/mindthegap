@@ -18,7 +18,7 @@ io.on('connection', (socket) => {
 });
 
 http.listen(port, () => {
-    console.log(`Socket.IO server running at http://localhost:${port}/`);
+    log.info(`server running at http://localhost:${port}/`);
 });
 
 exports.notify = function(event, args) {
