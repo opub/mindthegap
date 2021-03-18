@@ -96,7 +96,7 @@ function filterSpreads(data) {
         item.spread = {};
         item.spreadPercent = {};
         let watching = action.watching(item.symbol);
-        if (watching || item.low && item.high && item.low.exchange !== item.high.exchange && item.high.bid) {
+        if (item.low && item.high && (watching || item.low.exchange !== item.high.exchange && item.high.bid)) {
             item.spread.best = getSpread(item.high, item.low);
             if(item.short) item.spread.short = getSpread(item.short, item.low);
             // spread percent factors in buying and selling fees to get more accurate profit percent
