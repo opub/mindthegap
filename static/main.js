@@ -104,6 +104,11 @@ function getChart(symbol) {
                 },
                 axisBorder: {
                     color: colors.grid
+                },
+                labels: {
+                    formatter: function (value, timestamp) {
+                        return Intl.DateTimeFormat('en', { hour: 'numeric', minute: 'numeric', hour12: true }).format(new Date(timestamp))
+                    },
                 }
             },
             yaxis: {
@@ -118,8 +123,8 @@ function getChart(symbol) {
             tooltip: {
                 theme: 'dark',
                 x: {
-                    formatter: function (val) {
-                        return moment(new Date(val)).format("HH:mm:ss")
+                    formatter: function (timestamp) {
+                        return Intl.DateTimeFormat('en', { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true }).format(new Date(timestamp))
                     }
                 }
             }
