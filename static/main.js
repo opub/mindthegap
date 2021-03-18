@@ -1,16 +1,35 @@
 var socket = io();
 
+var colors = {
+    background: '#162027',
+    foreground: '#ffffff',
+    grid: '#555555',
+    open: '#09812a',
+    close: '#ef5b5b',
+    arbitrage: '#008bf8',
+    best: '#66f4b4',
+    short: '#85caff',
+    bestTop: '#0AF68B',
+    shortTop: '#3DABFF'
+};
+
 socket.on('priceUpdate', function (data) {
     var now = Date.now();
     for (var item of data) {
         console.log(item.symbol, item);
         var chart = getChart(item.symbol);
         console.log('chart', chart);
+
         chart.appendData([{
             data: [[now, item.spreadPercent.best]]
         }, {
             data: [[now, item.spreadPercent.short]]
         }]);
+
+        if (item.action === 'open' || item.action === 'close' || item.action === 'arbitrage') {
+            const point = getAnnotation(item.action, now, item.action === 'arbitrage' ? item.spreadPercent.best : item.spreadPercent.short);
+            chart.addPointAnnotation(point);
+        }
     }
 });
 
@@ -25,12 +44,11 @@ function getChart(symbol) {
         wrapper.appendChild(target);
 
         var loader = document.getElementById('loader');
-        if(loader) {
+        if (loader) {
             loader.remove();
         }
 
         var options = {
-            series: [{ name: 'best', data: [] }, { name: 'short', data: [] }],
             chart: {
                 id: 'chart-' + id,
                 height: 250,
@@ -42,6 +60,7 @@ function getChart(symbol) {
                         speed: 1000
                     }
                 },
+                foreColor: colors.foreground,
                 toolbar: {
                     show: false
                 },
@@ -49,25 +68,61 @@ function getChart(symbol) {
                     enabled: false
                 }
             },
-            dataLabels: {
-                enabled: false
-            },
-            stroke: {
-                curve: 'smooth'
-            },
             title: {
                 text: symbol,
                 align: 'left'
             },
+            series: [
+                { name: 'best', data: [] },
+                { name: 'short', data: [] }
+            ],
+            colors: [colors.best, colors.short],
+            stroke: {
+                curve: 'smooth',
+                width: 3
+            },
             markers: {
-                size: 1
+                size: 0,
+                hover: {
+                    sizeOffset: 5
+                }
+            },
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    type: 'vertical',
+                    gradientToColors: [colors.bestTop, colors.shortTop]
+                }
+            },
+            grid: {
+                borderColor: colors.grid,
             },
             xaxis: {
-                type: 'datetime'
+                type: 'datetime',
+                axisTicks: {
+                    color: colors.grid
+                },
+                axisBorder: {
+                    color: colors.grid
+                }
+            },
+            yaxis: {
+                decimalsInFloat: 3
+            },
+            dataLabels: {
+                enabled: false
             },
             legend: {
                 show: false
             },
+            tooltip: {
+                theme: 'dark',
+                x: {
+                    formatter: function (val) {
+                        return moment(new Date(val)).format("HH:mm:ss")
+                    }
+                }
+            }
         };
 
         var chart = new ApexCharts(document.querySelector('#' + target.id), options);
@@ -78,50 +133,19 @@ function getChart(symbol) {
     return charts.get(symbol);
 }
 
-window.Apex = {
-    chart: {
-      foreColor: '#fff',
-      toolbar: {
-        show: false
-      },
-    },
-    colors: ['#FCCF31', '#17ead9', '#f02fc2'],
-    stroke: {
-      width: 3
-    },
-    dataLabels: {
-      enabled: false
-    },
-    grid: {
-      borderColor: "#40475D",
-    },
-    xaxis: {
-      axisTicks: {
-        color: '#333'
-      },
-      axisBorder: {
-        color: "#333"
-      }
-    },
-    fill: {
-      type: 'gradient',
-      gradient: {
-        gradientToColors: ['#F55555', '#6078ea', '#6094ea']
-      },
-    },
-    tooltip: {
-      theme: 'dark',
-      x: {
-        formatter: function (val) {
-          return moment(new Date(val)).format("HH:mm:ss")
+function getAnnotation(type, x, y) {
+    return {
+        x,
+        y,
+        marker: {
+            size: 2,
+        },
+        label: {
+            text: type,
+            style: {
+                color: colors.foreground,
+                background: colors[type]
+            }
         }
-      }
-    },
-    yaxis: {
-      decimalsInFloat: 2,
-      opposite: true,
-      labels: {
-        offsetX: -10
-      }
-    }
-  }
+    };
+}

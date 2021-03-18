@@ -8,7 +8,8 @@
         ],
         "exclude": [
             "coingi",
-            "coinmarketcap"
+            "coinmarketcap",
+            "lakebtc"
         ]
     },
     "markets": {

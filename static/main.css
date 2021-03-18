@@ -4,12 +4,12 @@ body {
     height: 100%;
     margin: 0;
     font-family: consolas;
-    background: #1b213b;
+    background: #162027;
     color: #777;
 }
 
 .body-bg {
-    background: #f3f4fa !important;
+    background: #162027 !important;
 }
 
 h1, h2, h3, h4, h5, h6, strong {
@@ -17,14 +17,14 @@ h1, h2, h3, h4, h5, h6, strong {
 }
 
 .box .apexcharts-xaxistooltip {
-    background: #1b213b;
+    background: #0e161a;
     color: #fff;
 }
 
 #loader {
-    border: 2px solid #ffffff;
-    border-top: 2px solid #fccf31;
-    border-bottom: 2px solid #17ead9;
+    border: 1px solid #ffffff;
+    border-top: 1px solid #85caff;
+    border-bottom: 1px solid #66f4b4;
     border-radius: 50%;
     width: 50px;
     height: 50px;
@@ -33,7 +33,7 @@ h1, h2, h3, h4, h5, h6, strong {
     left: 50%;
     margin-top: -25px;
     margin-left: -25px;
-    animation: spin 2s linear infinite;
+    animation: spin 1s linear infinite;
 }
   
 @keyframes spin {

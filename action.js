@@ -20,11 +20,14 @@ exports.process = async function(spreads) {
         if(!watchList.has(symbol)) {
             if(spread.spreadPercent.best >= ARBITRAGE_THRESHOLD) {
                 log.info('ARBITRAGE', spread);
+                spread.action = 'arbitrage';
             } else if(spread.spreadPercent.short >= OPEN_SHORT_THRESHOLD) {
                 log.info('OPENING', spread);
                 watchList.set(symbol, spread);
+                spread.action = 'open';
             } else {
                 log.info('passing on', symbol, spread.spreadPercent);
+                spread.action = 'pass';
             }
         } 
         else {
@@ -32,9 +35,12 @@ exports.process = async function(spreads) {
             if(spread.spreadPercent.short <= previous.spreadPercent.short - CLOSE_SHORT_PROFIT) {
                 log.info('CLOSING', previous.spreadPercent.short, spread);
                 watchList.delete(symbol);
+                spread.action = 'close';
             } else {
                 log.info('already watching', symbol, previous.spreadPercent.short, spread.spreadPercent.short);
+                spread.action = 'watch';
             }
         }
     }
+    return spreads;
 };
