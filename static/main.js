@@ -15,21 +15,14 @@ var charts = new Map();
 
 function getChart(symbol) {
     if (!charts.has(symbol)) {
-        var parent = document.getElementById('wrapper');
-        var wrapper = document.createElement('div');
-        wrapper.className = 'chart-wrapper';
-        parent.appendChild(wrapper);
-        var title = document.createElement('div');
-        title.className = 'chart-title';
-        title.innerText = symbol;
-        wrapper.appendChild(title);
+        var wrapper = document.getElementById('wrapper');
         var canvas = document.createElement('canvas');
         canvas.id = 'chart-' + symbol.replace('/', '');
-        canvas.width = 1600;
-        canvas.height = 300;
+        canvas.width = window.innerWidth;;
+        canvas.height = 200;
         wrapper.appendChild(canvas);
 
-        var chart = new SmoothieChart({ grid: { strokeStyle: 'rgba(119,119,119,0.48)', millisPerLine: 40000, verticalSections: 4 }, tooltip: true, millisPerPixel: 500, minValueScale: 1.05, maxValueScale: 1.05 });
+        var chart = new SmoothieChart({ tooltip: true, millisPerPixel: 1000, minValueScale: 1.05, maxValueScale: 1.05, title: { text: symbol, fontFamily: 'consolas', fontSize: 20, verticalAlign: 'top' }, grid: { strokeStyle: 'rgba(119,119,119,0.48)', millisPerLine: 40000, verticalSections: 4 },  labels: { fontFamily: 'consolas', fontSize: 16 } });
         var best = new TimeSeries(), short = new TimeSeries();
         chart.addTimeSeries(best, { lineWidth: 3, strokeStyle: '#00ff88' });
         chart.addTimeSeries(short, { lineWidth: 3, strokeStyle: '#0088ff' });
