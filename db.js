@@ -18,6 +18,9 @@ function setup() {
 
     stmts.insertSpreads = db.prepare('INSERT INTO spreads (time, symbol, action, duration, data) VALUES (@time, @symbol, @action, @duration, @data)');
     stmts.selectSpreads = db.prepare('SELECT data FROM spreads WHERE time > ? ORDER BY time');
+    stmts.deleteWatching = db.prepare('DELETE FROM watching');
+    stmts.insertWatching = db.prepare('INSERT INTO watching (time, symbol, data) VALUES (@time, @symbol, @data)');
+    stmts.selectWatching = db.prepare('SELECT data FROM watching');
 }
 
 function teardown() {
@@ -25,7 +28,7 @@ function teardown() {
     db.close();
 }
 
-exports.insertSpreads = async function (spreads) {
+exports.saveSpreads = async function (spreads) {
     for (const row of spreads) {
         row.data = JSON.stringify(row);
         row.time = row.date.getTime();
@@ -33,7 +36,7 @@ exports.insertSpreads = async function (spreads) {
     }
 };
 
-exports.selectSpreads = function (time) {
+exports.getSpreads = function (time) {
     if (!time) {
         time = Date.now() - FOUR_HOURS;
     }
@@ -41,6 +44,31 @@ exports.selectSpreads = function (time) {
     const results = [];
     for (const row of rows) {
         results.push(JSON.parse(row.data));
+    }
+    return results;
+};
+
+exports.saveWatching = async function (spreads) {
+    const replace = db.transaction((rows) => {
+        stmts.deleteWatching.run();
+        for (const row of rows) {
+            delete row.data;
+            delete row.time;
+            row.data = JSON.stringify(row);
+            row.time = row.date.getTime();
+            stmts.insertWatching.run(row);
+        }
+    });
+    replace(spreads);
+};
+
+exports.getWatching = function () {
+    const rows = stmts.selectWatching.all();
+    const results = [];
+    for (const row of rows) {
+        let spread = JSON.parse(row.data);
+        spread.date = new Date(spread.date);
+        results.push(spread);
     }
     return results;
 };

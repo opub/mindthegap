@@ -7,23 +7,23 @@ const OPEN_SHORT_THRESHOLD = config.get('openShortThreshold');
 const CLOSE_SHORT_PROFIT = config.get('closeShortProfit');
 const watchList = new Map();
 
-exports.watching = function(symbol) {
+exports.watching = function (symbol) {
     return watchList.has(symbol);
 };
 
-exports.getWatched = function(symbol) {
+exports.getWatched = function (symbol) {
     return watchList.get(symbol);
 };
 
-exports.process = async function(spreads) {
-    for(const spread of spreads) {
+exports.process = async function (spreads) {
+    for (const spread of spreads) {
         let symbol = spread.symbol;
-        if(!watchList.has(symbol)) {
+        if (!watchList.has(symbol)) {
             spread.duration = undefined;
-            if(spread.spreadPercent.best >= ARBITRAGE_THRESHOLD) {
+            if (spread.spreadPercent.best >= ARBITRAGE_THRESHOLD) {
                 log.info('ARBITRAGE', spread);
                 spread.action = 'arbitrage';
-            } else if(spread.spreadPercent.short >= OPEN_SHORT_THRESHOLD) {
+            } else if (spread.spreadPercent.short >= OPEN_SHORT_THRESHOLD) {
                 log.info('OPENING', spread);
                 watchList.set(symbol, spread);
                 spread.action = 'open';
@@ -31,11 +31,11 @@ exports.process = async function(spreads) {
                 log.info('passing on', symbol, spread.spreadPercent);
                 spread.action = 'pass';
             }
-        } 
+        }
         else {
             let previous = watchList.get(symbol);
             spread.duration = Date.now() - previous.date.getTime();
-            if(spread.spreadPercent.short <= previous.spreadPercent.short - CLOSE_SHORT_PROFIT) {
+            if (spread.spreadPercent.short <= previous.spreadPercent.short - CLOSE_SHORT_PROFIT) {
                 log.info('CLOSING', previous.spreadPercent.short, spread);
                 watchList.delete(symbol);
                 spread.action = 'close';
@@ -45,7 +45,19 @@ exports.process = async function(spreads) {
             }
         }
     }
-    db.insertSpreads(spreads);
+    db.saveSpreads(spreads);
+    db.saveWatching(watchList.values())
 
     return spreads;
 };
+
+function initialize() {
+    const spreads = db.getWatching();
+    log.info('watching', spreads.length);
+    for (const item of spreads) {
+        log.info(item);
+        watchList.set(item.symbol, item);
+    }
+}
+
+initialize();

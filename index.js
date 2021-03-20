@@ -13,7 +13,7 @@ app.use(express.static('static'));
 
 app.route('/spreads/:time?').get(function (req, res) {
     log.info('GET /spreads/', req.params.time);
-    const spreads = db.selectSpreads(req.params.time);
+    const spreads = db.getSpreads(req.params.time);
     res.send(spreads);
 });
 

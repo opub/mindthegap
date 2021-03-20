@@ -43,3 +43,10 @@ CREATE TABLE IF NOT EXISTS spreads (
     duration INTEGER,
     data TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS watching (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    time INTEGER NOT NULL,
+    symbol TEXT NOT NULL,
+    data TEXT NOT NULL
+);
