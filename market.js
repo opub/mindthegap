@@ -3,7 +3,6 @@ const action = require('./action');
 const log = require('./logging');
 const config = require('config');
 const {round} = require('./utils');
-const db = require('./db');
 
 exports.getSpreads = async function (markets) {
     log.debug('getting spreads');
@@ -21,7 +20,6 @@ exports.getSpreads = async function (markets) {
         }
     });
     report(loaded);
-    db.insertPrices(loaded);
 
     const filtered = filterSpreads(loaded);
     log.debug(filtered);

@@ -2,6 +2,7 @@ const fs = require('fs');
 const log = require('./logging');
 const db = require('better-sqlite3')('arbitrage.db');
 
+const FOUR_HOURS = 4 * 60 * 60 * 1000;
 const stmts = {};
 
 function setup() {
@@ -15,7 +16,8 @@ function setup() {
     const schema = fs.readFileSync('schema.sql', 'utf8');
     db.exec(schema);
 
-    stmts.insertPrice = db.prepare('INSERT INTO prices (time, symbol, exchange, bid, ask, maker, taker, percentage) VALUES (@time, @symbol, @exchange, @bid, @ask, @maker, @taker, @percentage)');
+    stmts.insertSpreads = db.prepare('INSERT INTO spreads (time, symbol, action, duration, data) VALUES (@time, @symbol, @action, @duration, @data)');
+    stmts.selectSpreads = db.prepare('SELECT data FROM spreads WHERE time > ? ORDER BY time');
 }
 
 function teardown() {
@@ -23,11 +25,24 @@ function teardown() {
     db.close();
 }
 
-exports.insertPrices = async function (prices) {
-    for(const row of prices) {
-        row.percentage = row.percentage ? 1 : 0;
-        stmts.insertPrice.run(row);
+exports.insertSpreads = async function (spreads) {
+    for (const row of spreads) {
+        row.data = JSON.stringify(row);
+        row.time = row.date.getTime();
+        stmts.insertSpreads.run(row);
     }
+};
+
+exports.selectSpreads = function (time) {
+    if (!time) {
+        time = Date.now() - FOUR_HOURS;
+    }
+    const rows = stmts.selectSpreads.all(time);
+    const results = [];
+    for (const row of rows) {
+        results.push(JSON.parse(row.data));
+    }
+    return results;
 };
 
 setup();

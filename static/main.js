@@ -1,6 +1,6 @@
-var socket = io();
-
-var colors = {
+let socket = io();
+let charts = new Map();
+let colors = {
     background: '#162027',
     foreground: '#ffffff',
     grid: '#555555',
@@ -13,42 +13,62 @@ var colors = {
     shortTop: '#3DABFF'
 };
 
-socket.on('priceUpdate', function (data) {
-    var now = Date.now();
-    for (var item of data) {
-        console.log(item.symbol, item);
-        var chart = getChart(item.symbol);
-        console.log('chart', chart);
+window.onload = function () {
+    initialize();
+};
 
-        chart.appendData([{
-            data: [[now, item.spreadPercent.best]]
-        }, {
-            data: [[now, item.spreadPercent.short]]
-        }]);
+function initialize() {
+    let request = new XMLHttpRequest();
+    request.open('GET', '/spreads');
+    request.responseType = 'json';
+    request.send();
 
-        if (item.action === 'open' || item.action === 'close' || item.action === 'arbitrage') {
-            const point = getAnnotation(item.action, now, item.action === 'arbitrage' ? item.spreadPercent.best : item.spreadPercent.short);
-            chart.addPointAnnotation(point);
+    request.onload = function () {
+        let spreads = request.response;
+        if (spreads && spreads.length > 0) {
+            for (let item of spreads) {
+                addItem(item);
+            }
         }
+    }
+}
+
+socket.on('spreads', function (data) {
+    for (let item of data) {
+        addItem(item);
     }
 });
 
-var charts = new Map();
+function addItem(item) {
+    let chart = getChart(item.symbol);
+    let time = new Date(item.date).getTime();
+
+    chart.appendData([{
+        data: [[time, item.spreadPercent.best]]
+    }, {
+        data: [[time, item.spreadPercent.short]]
+    }]);
+
+    if (item.action === 'open' || item.action === 'close' || item.action === 'arbitrage') {
+        const point = getAnnotation(item.action, time, item.action === 'arbitrage' ? item.spreadPercent.best : item.spreadPercent.short);
+        chart.addPointAnnotation(point);
+    }
+}
 
 function getChart(symbol) {
     if (!charts.has(symbol)) {
-        var id = symbol.replace('/', '').toLowerCase();
-        var wrapper = document.getElementById('wrapper');
-        var target = document.createElement('div');
+        let id = symbol.replace('/', '').toLowerCase();
+        let wrapper = document.getElementById('wrapper');
+        let target = document.createElement('div');
         target.id = 'target-' + id;
         wrapper.appendChild(target);
 
-        var loader = document.getElementById('loader');
+        let loader = document.getElementById('loader');
         if (loader) {
             loader.remove();
         }
 
-        var options = {
+        let options = {
             chart: {
                 id: 'chart-' + id,
                 height: 250,
@@ -130,7 +150,7 @@ function getChart(symbol) {
             }
         };
 
-        var chart = new ApexCharts(document.querySelector('#' + target.id), options);
+        let chart = new ApexCharts(document.querySelector('#' + target.id), options);
         chart.render();
 
         charts.set(symbol, chart);

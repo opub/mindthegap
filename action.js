@@ -1,5 +1,6 @@
 const log = require('./logging');
 const config = require('config');
+const db = require('./db');
 
 const ARBITRAGE_THRESHOLD = config.get('arbitrageThreshold');
 const OPEN_SHORT_THRESHOLD = config.get('openShortThreshold');
@@ -18,6 +19,7 @@ exports.process = async function(spreads) {
     for(const spread of spreads) {
         let symbol = spread.symbol;
         if(!watchList.has(symbol)) {
+            spread.duration = undefined;
             if(spread.spreadPercent.best >= ARBITRAGE_THRESHOLD) {
                 log.info('ARBITRAGE', spread);
                 spread.action = 'arbitrage';
@@ -32,6 +34,7 @@ exports.process = async function(spreads) {
         } 
         else {
             let previous = watchList.get(symbol);
+            spread.duration = Date.now() - previous.date.getTime();
             if(spread.spreadPercent.short <= previous.spreadPercent.short - CLOSE_SHORT_PROFIT) {
                 log.info('CLOSING', previous.spreadPercent.short, spread);
                 watchList.delete(symbol);
@@ -42,5 +45,7 @@ exports.process = async function(spreads) {
             }
         }
     }
+    db.insertSpreads(spreads);
+
     return spreads;
 };

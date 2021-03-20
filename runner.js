@@ -17,7 +17,7 @@ async function runner() {
     const markets = await exchange.loadMarkets(count % config.get('reloadRate'));
     let spreads = await market.getSpreads(markets);
     spreads = await action.process(spreads);
-    server.notify('priceUpdate', spreads);
+    server.notify('spreads', spreads);
 
     log.info('completed', ++count, ((Date.now() - started) / 1000).toFixed(3));
 
