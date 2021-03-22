@@ -37,7 +37,7 @@ exports.saveSpreads = async function (spreads) {
 };
 
 exports.getSpreads = function (time) {
-    if (!time) {
+    if (time === undefined) {
         time = Date.now() - FOUR_HOURS;
     }
     const rows = stmts.selectSpreads.all(time);
