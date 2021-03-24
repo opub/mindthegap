@@ -2,27 +2,32 @@ const ccxt = require('ccxt');
 const { includeExchange, includeMarket } = require('./utils');
 const log = require('./logging');
 const config = require('config');
+const account = require('./account');
 
 const RATELIMIT = config.get('rateLimit');
 const exchangeCache = new Map();
 
-exports.getExchange = function (name) {
-    if(exchangeCache.has(name)) {
+function getExchange(name) {
+    if (exchangeCache.has(name)) {
         return exchangeCache.get(name);
     } else {
         return new ccxt[name]({ rateLimit: RATELIMIT, enableRateLimit: true });
     }
 };
+exports.getExchange = getExchange;
 
 exports.loadMarkets = async function (reload) {
     log.debug('loading markets');
     const jobs = [];
 
     for (const name of ccxt.exchanges) {
-        const exchange = new ccxt[name]({ rateLimit: RATELIMIT, enableRateLimit: true });
+        const exchange = getExchange(name);
         if (includeExchange(exchange)) {
-            exchangeCache.set(name, exchange);
-            jobs.push(loadMarket(exchange, reload));
+            const balance = await account.fetchBalance(exchange);
+            if (balance) {
+                exchangeCache.set(name, exchange);
+                jobs.push(loadMarket(exchange, reload));
+            }
         } else {
             log.debug(name, 'excluded');
         }
@@ -80,12 +85,12 @@ function compareMarkets(a, b) {
 }
 
 function report(data) {
-    if(log.willLog('debug')) {
+    if (log.willLog('debug')) {
         let exchanges = new Set();
         let markets = new Set();
         let bases = new Set();
         let quotes = new Set();
-    
+
         data.forEach(e => {
             exchanges.add(e.id);
             e.markets.forEach(m => {
@@ -94,14 +99,14 @@ function report(data) {
                 quotes.add(m.quote);
             });
         });
-    
+
         let results = {
             exchanges: { count: exchanges.size, names: Array.from(exchanges.values()) },
             markets: { count: markets.size, names: Array.from(markets.values()) },
             bases: { count: bases.size, names: Array.from(bases.values()) },
             quotes: { count: quotes.size, names: Array.from(quotes.values()) }
         };
-    
+
         log.debug(JSON.stringify(results, null, 2));
     }
 }

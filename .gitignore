@@ -11,3 +11,6 @@ test.js
 # Data
 *.db
 *.csv
+
+# Secrets
+config/creds.json
