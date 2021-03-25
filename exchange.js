@@ -5,7 +5,8 @@ const config = require('config');
 const account = require('./account');
 
 const RATELIMIT = config.get('rateLimit');
-const exchangeCache = new Map();
+let exchangeCache = new Map();
+let marketCache = [];
 
 function getExchange(name) {
     if (exchangeCache.has(name)) {
@@ -20,29 +21,35 @@ exports.loadMarkets = async function (reload) {
     log.debug('loading markets');
     const jobs = [];
 
-    for (const name of ccxt.exchanges) {
-        const exchange = getExchange(name);
-        if (includeExchange(exchange)) {
-            const balance = await account.fetchBalance(exchange);
-            if (balance) {
-                exchangeCache.set(name, exchange);
-                jobs.push(loadMarket(exchange, reload));
+    if(reload) {
+        const latest = new Map();
+        for (const name of ccxt.exchanges) {
+            const exchange = getExchange(name);
+            if (includeExchange(exchange)) {
+                const balance = await account.fetchBalance(exchange);
+                if (balance) {
+                    latest.set(name, exchange);
+                    jobs.push(loadMarket(exchange, reload));
+                }
+            } else {
+                log.debug(name, 'excluded');
             }
-        } else {
-            log.debug(name, 'excluded');
         }
+        exchangeCache = latest;
+        log.info('exchanges', [...exchangeCache.keys()]);
+
+        marketCache = [];
+        await Promise.allSettled(jobs).then((results) => {
+            for (const result of results) {
+                if (result.status === 'fulfilled' && result.value) {
+                    marketCache.push(result.value);
+                }
+            }
+        });
+        report(marketCache);
     }
 
-    const loaded = [];
-    await Promise.allSettled(jobs).then((results) => {
-        for (const result of results) {
-            if (result.status === 'fulfilled' && result.value) {
-                loaded.push(result.value);
-            }
-        }
-    });
-    report(loaded);
-    return loaded;
+    return marketCache;
 };
 
 async function loadMarket(exchange, reload) {

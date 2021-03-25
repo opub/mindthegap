@@ -1,4 +1,4 @@
-const config = require('config').get('logging');
+let config = require('config').get('logging');
 
 const levels = {
     none: 0,
@@ -7,6 +7,10 @@ const levels = {
     info: 3,
     debug: 4
 };
+
+exports.setLevel = function (level) {
+    config = level;
+}
 
 function willLog(level) {
     return !config || levels[level] <= levels[config];

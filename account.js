@@ -2,16 +2,27 @@ const credentials = require('./config/creds.json');
 const log = require('./logging');
 
 exports.fetchBalance = async function (exchange) {
-    log.debug('fetching balance', exchange.id);
-    if (exchange.has['fetchBalance'] && credentials[exchange.id]) {
-        exchange = authenticate(exchange);
-        const balance = await exchange.fetchBalance();
-        log.debug(exchange.id, 'balance', balance.total);
-        return balance.total;
+    const name = exchange.id;
+    log.debug(name, 'fetching balance');
+    if (exchange.has['fetchBalance'] && credentials[name]) {
+        try {
+            exchange = authenticate(exchange);
+            const params = {};
+            if(name === 'okcoin') {
+                params.type = 'account';
+            }
+            const balance = await exchange.fetchBalance(params);
+            log.debug(name, 'balance', balance.total);
+            return balance.total;
+        }
+        catch(e) {
+            let msg = e.toString();
+            log.warn(exchange.id, 'fetchBalance failed', msg.indexOf('\n') > 0 ? msg.substring(0, msg.indexOf('\n')) : msg);
+        }
     } else {
-        log.debug(exchange.id, exchange.has['fetchBalance'] ? 'no credentials' : 'no fetchBalance support');
-        return false;
+        log.debug(name, exchange.has['fetchBalance'] ? 'no credentials' : 'no fetchBalance support');
     }
+    return false;
 }
 
 function authenticate(exchange) {
