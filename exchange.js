@@ -8,6 +8,10 @@ const RATELIMIT = config.get('rateLimit');
 let exchangeCache = new Map();
 let marketCache = [];
 
+exports.getCurrentExchanges = function () {
+    return exchangeCache;
+}
+
 function getExchange(name) {
     if (exchangeCache.has(name)) {
         return exchangeCache.get(name);
@@ -21,7 +25,7 @@ exports.loadMarkets = async function (reload) {
     log.debug('loading markets');
     const jobs = [];
 
-    if(reload) {
+    if(reload || marketCache.length === 0) {
         const latest = new Map();
         for (const name of ccxt.exchanges) {
             const exchange = getExchange(name);
