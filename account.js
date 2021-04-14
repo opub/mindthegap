@@ -26,26 +26,11 @@ exports.fetchBalance = async function (exchange) {
 }
 
 exports.getDepositAddress = async function (exchange, currency) {
-
-    if (exchange.id !== 'kraken' && exchange.id !== 'okcoin') {
-        log.error(exchange.id, 'getDepositAddress NOT SUPPORTED');
-    } else if (exchange.id === 'kraken') {
-        let data = await exchange.privatePostDepositAddresses({ asset: currency, method: currency });
-        if (!data.result || data.result.length === 0) {
-            data = await exchange.privatePostDepositAddresses({ asset: currency, method: currency, new: true });
-        }
-        if (data.result && data.result.length > 0) {
-            return data.result[0].address;
-        }
-    } else if (exchange.id === 'okcoin') {
-        let data = await exchange.accountGetDepositAddress({ currency });
-        log.info('okcoin address', data);
-        if (data && data.length > 0) {
-            return data[0].address;
-        }
-    } log.warn(exchange.id, 'could not find address for', currency);
-    return null;
-
+    if (!exchange.depositAddress) {
+        log.error(exchange.id, 'depositAddress NOT SUPPORTED');
+    } else {
+        return exchange.depositAddress(currency);
+    }
 }
 
 function authenticate(exchange) {

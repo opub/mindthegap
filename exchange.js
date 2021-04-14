@@ -3,6 +3,7 @@ const { includeExchange, includeMarket } = require('./utils');
 const log = require('./logging');
 const config = require('config');
 const account = require('./account');
+require('./extensions');
 
 const RATELIMIT = config.get('rateLimit');
 let exchangeCache = new Map();
