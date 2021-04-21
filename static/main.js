@@ -39,6 +39,12 @@ socket.on('spreads', function (data) {
     }
 });
 
+socket.on('balances', function (data) {
+    for (let item of data) {
+        console.log('balance', item);
+    }
+});
+
 function addItem(item) {
     let chart = getChart(item.symbol);
     let time = new Date(item.date).getTime();
@@ -49,8 +55,11 @@ function addItem(item) {
         data: [[time, item.spreadPercent.short]]
     }]);
 
-    if (item.action === 'open' || item.action === 'close' || item.action === 'arbitrage') {
-        const point = getAnnotation(item.action, time, item.action === 'arbitrage' ? item.spreadPercent.best : item.spreadPercent.short);
+    if (item.action === 'open' || item.action === 'close') {
+        const point = getAnnotation(item.action, item.short.exchange, item.low.exchange, time, item.spreadPercent.short);
+        chart.addPointAnnotation(point);
+    } else if (item.action === 'arbitrage') {
+        const point = getAnnotation(item.action, item.high.exchange, item.low.exchange, time, item.spreadPercent.best);
         chart.addPointAnnotation(point);
     }
 }
@@ -58,7 +67,7 @@ function addItem(item) {
 function getChart(symbol) {
     if (!charts.has(symbol)) {
         let id = symbol.replace('/', '').toLowerCase();
-        let wrapper = document.getElementById('wrapper');
+        let wrapper = document.getElementById('charts');
         let target = document.createElement('div');
         target.id = 'target-' + id;
         wrapper.appendChild(target);
@@ -158,7 +167,7 @@ function getChart(symbol) {
     return charts.get(symbol);
 }
 
-function getAnnotation(type, x, y) {
+function getAnnotation(type, high, low, x, y) {
     return {
         x,
         y,
@@ -166,7 +175,7 @@ function getAnnotation(type, x, y) {
             size: 2,
         },
         label: {
-            text: type,
+            text: `${type}: ${high}/${low}`,
             style: {
                 color: colors.foreground,
                 background: colors[type]

@@ -3,6 +3,7 @@ const { includeExchange, includeMarket } = require('./utils');
 const log = require('./logging');
 const config = require('config');
 const account = require('./account');
+const server = require('./index');
 require('./extensions');
 
 const RATELIMIT = config.get('rateLimit');
@@ -28,11 +29,14 @@ exports.loadMarkets = async function (reload) {
 
     if(reload || marketCache.length === 0) {
         const latest = new Map();
+        const balances = [];
         for (const name of ccxt.exchanges) {
             const exchange = getExchange(name);
             if (includeExchange(exchange)) {
                 const balance = await account.fetchBalance(exchange);
                 if (balance) {
+                    balance.id = name;
+                    balances.push(balance);
                     latest.set(name, exchange);
                     jobs.push(loadMarket(exchange, reload));
                 }
@@ -40,6 +44,7 @@ exports.loadMarkets = async function (reload) {
                 log.debug(name, 'excluded');
             }
         }
+        server.notify('balances', balances);
         exchangeCache = latest;
         log.info('exchanges', [...exchangeCache.keys()]);
 

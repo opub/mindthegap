@@ -12,8 +12,11 @@ exports.fetchBalance = async function (exchange) {
                 params.type = 'account';
             }
             const balance = await exchange.fetchBalance(params);
-            log.debug(name, 'balance', balance.total);
-            return balance.total;
+            const total = prune(balance.total);
+            if(total) {
+                log.debug(name, 'balance', total);
+                return total;
+            }
         }
         catch (e) {
             let msg = e.toString();
@@ -48,3 +51,15 @@ function authenticate(exchange) {
     return exchange;
 }
 exports.authenticate = authenticate;
+
+function prune(total) {
+    let exist = false;
+    let balances = {};
+    for (const key of Object.keys(total)) {
+        if (total[key]) {
+            balances[key] = total[key];
+            exist = true;
+        }
+    }
+    return exist ? balances : false;
+}
