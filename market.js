@@ -2,7 +2,7 @@ const { getExchange } = require('./exchange');
 const action = require('./action');
 const log = require('./logging');
 const config = require('config');
-const {round} = require('./utils');
+const { round } = require('./utils');
 
 exports.getSpreads = async function (markets) {
     log.debug('getting spreads');
@@ -27,12 +27,12 @@ exports.getSpreads = async function (markets) {
 };
 
 function report(prices) {
-    if(log.willLog('debug')) {
+    if (log.willLog('debug')) {
         let results = new Map();
-    
-        for(const p of prices) {
+
+        for (const p of prices) {
             let values = results.has(p.symbol) ? results.get(p.symbol) : { exchanges: [], bids: [], asks: [], makers: [], takers: [] };
-            values.exchanges.push(p.exchange);            
+            values.exchanges.push(p.exchange);
             values.bids.push(p.bid);
             values.asks.push(p.ask);
             values.makers.push(p.maker);
@@ -53,7 +53,7 @@ async function fetchMarketPrices(marketSet) {
                 let orderbook = await exchange.fetchOrderBook(m.symbol);
                 let bid = orderbook && orderbook.bids && orderbook.bids.length ? orderbook.bids[0][0] : undefined;
                 let ask = orderbook && orderbook.asks && orderbook.asks.length ? orderbook.asks[0][0] : undefined;
-                if(bid && ask) {
+                if (bid && ask) {
                     log.debug(exchange.id, m.symbol, 'loaded market price');
                     prices.push({ time: Date.now(), exchange: exchange.id, symbol: m.symbol, bid, ask, maker: m.maker, taker: m.taker, percentage: (m.percentage || m.percentage === undefined) });
                 }
@@ -96,10 +96,10 @@ function filterSpreads(data) {
         let watching = action.watching(item.symbol);
         if (item.low && item.high && (watching || item.low.exchange !== item.high.exchange && item.high.bid)) {
             item.spread.best = getSpread(item.high, item.low);
-            if(item.short) item.spread.short = getSpread(item.short, item.low);
+            if (item.short) item.spread.short = getSpread(item.short, item.low);
             // spread percent factors in buying and selling fees to get more accurate profit percent
             item.spreadPercent.best = getSpreadPercent(item.spread.best, item.high, item.low);
-            if(item.short) item.spreadPercent.short = getSpreadPercent(item.spread.short, item.short, item.low);
+            if (item.short) item.spreadPercent.short = getSpreadPercent(item.spread.short, item.short, item.low);
             if (watching || item.spreadPercent.best > 0 || item.spreadPercent.short > 0) {
                 results.push(item);
             }
@@ -111,10 +111,10 @@ function filterSpreads(data) {
 
 function getSpread(high, low) {
     let spread = high.bid - low.bid;
-    if(!high.percentage) {
+    if (!high.percentage) {
         spread -= Math.max(high.maker, high.taker) * 2;
     }
-    if(!low.percentage) {
+    if (!low.percentage) {
         spread -= Math.max(low.maker, low.taker) * 2;
     }
     return round(spread, 8)
@@ -122,10 +122,10 @@ function getSpread(high, low) {
 
 function getSpreadPercent(spread, high, low) {
     let percent = spread / high.bid;
-    if(high.percentage) {
+    if (high.percentage) {
         percent -= Math.max(high.maker, high.taker) * 2;
     }
-    if(low.percentage) {
+    if (low.percentage) {
         percent -= Math.max(low.maker, low.taker) * 2;
     }
     return round(percent * 100.0, 8)

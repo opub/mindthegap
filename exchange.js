@@ -27,7 +27,7 @@ exports.loadMarkets = async function (reload) {
     log.debug('loading markets');
     const jobs = [];
 
-    if(reload || marketCache.length === 0) {
+    if (reload || marketCache.length === 0) {
         const latest = new Map();
         const balances = [];
         for (const name of ccxt.exchanges) {

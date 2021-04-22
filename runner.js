@@ -21,7 +21,7 @@ async function runner() {
 
     log.info('completed', ++count, ((Date.now() - started) / 1000).toFixed(3));
 
-    if(CONTINUOUS) {
+    if (CONTINUOUS) {
         setTimeout(runner, RUNINTERVAL);
     }
 }
