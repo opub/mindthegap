@@ -1,6 +1,8 @@
 const log = require('./logging');
 const config = require('config');
 const db = require('./db');
+const account = require('./account');
+const exchange = require('./exchange');
 
 const ARBITRAGE_THRESHOLD = config.get('arbitrageThreshold');
 const OPEN_SHORT_THRESHOLD = config.get('openShortThreshold');
@@ -20,10 +22,10 @@ exports.process = async function (spreads) {
         let symbol = spread.symbol;
         if (!watchList.has(symbol)) {
             spread.duration = undefined;
-            if (spread.spreadPercent.best >= ARBITRAGE_THRESHOLD) {
+            if (canArbitrage(spread)) {
                 log.info('ARBITRAGE', spread);
                 spread.action = 'arbitrage';
-            } else if (spread.spreadPercent.short >= OPEN_SHORT_THRESHOLD) {
+            } else if (canOpen(spread)) {
                 log.info('OPENING', spread);
                 watchList.set(symbol, spread);
                 spread.action = 'open';
@@ -31,11 +33,10 @@ exports.process = async function (spreads) {
                 log.info('passing on', symbol, spread.spreadPercent);
                 spread.action = 'pass';
             }
-        }
-        else {
+        } else {
             let previous = watchList.get(symbol);
             spread.duration = Date.now() - previous.date.getTime();
-            if (spread.spreadPercent.short <= previous.spreadPercent.short - CLOSE_SHORT_PROFIT) {
+            if (canClose(spread, previous)) {
                 log.info('CLOSING', previous.spreadPercent.short, spread);
                 watchList.delete(symbol);
                 spread.action = 'close';
@@ -50,6 +51,22 @@ exports.process = async function (spreads) {
 
     return spreads;
 };
+
+function canArbitrage(spread) {    
+    return (spread.spreadPercent.best >= ARBITRAGE_THRESHOLD
+        && account.canBuy(exchange.getExchange(spread.high.exchange), spread.symbol) 
+        && account.canSell(exchange.getExchange(spread.low.exchange), spread.symbol));
+}
+
+function canOpen(spread) {
+    return (spread.spreadPercent.short >= OPEN_SHORT_THRESHOLD
+        && account.canOpenHigh(exchange.getExchange(spread.short.exchange), spread.symbol) 
+        && account.canOpenLow(exchange.getExchange(spread.low.exchange), spread.symbol));
+}
+
+function canClose(spread, previous) {
+    return spread.spreadPercent.short <= previous.spreadPercent.short - CLOSE_SHORT_PROFIT;
+}
 
 function initialize() {
     const spreads = db.getWatching();

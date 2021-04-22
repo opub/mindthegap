@@ -52,11 +52,20 @@ h1, h2, h3, h4, h5, h6, strong {
     display: table-cell;
     vertical-align: top;
 }
-
-#status {
+.title {
     font-family: Helvetica, Arial, sans-serif;
     font-size: 14px;
     font-weight: 900;
     color: #ffffff;
     width: 250px;
+}
+.detail {
+    margin-bottom: 10px;
+}
+
+#charts {
+    width: 75%;
+}
+#status {
+    width: 25%;
 }

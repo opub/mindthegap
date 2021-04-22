@@ -39,9 +39,28 @@ socket.on('spreads', function (data) {
     }
 });
 
-socket.on('balances', function (data) {
+socket.on('alerts', function (data) {
+    let parent = document.getElementById('alertdata');
     for (let item of data) {
-        console.log('balance', item);
+        let target = document.createElement('div');
+        let id = item.id;
+        delete item.id;
+        target.innerText = id + ': ' + JSON.stringify(item);
+        parent.appendChild(target);
+    }
+});
+
+socket.on('balances', function (data) {
+    let parent = document.getElementById('balancedata');
+    while (parent.firstChild) {
+        parent.removeChild(parent.firstChild);
+    }
+    for (let item of data) {
+        let target = document.createElement('div');
+        let id = item.id;
+        delete item.id;
+        target.innerText = id + ': ' + JSON.stringify(item);
+        parent.appendChild(target);
     }
 });
 
