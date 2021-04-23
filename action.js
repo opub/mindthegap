@@ -7,6 +7,7 @@ const exchange = require('./exchange');
 const ARBITRAGE_THRESHOLD = config.get('arbitrageThreshold');
 const OPEN_SHORT_THRESHOLD = config.get('openShortThreshold');
 const CLOSE_SHORT_PROFIT = config.get('closeShortProfit');
+const ABANDON_THRESHOLD = config.get('abandonThreshold');
 const watchList = new Map();
 
 exports.watching = function (symbol) {
@@ -65,7 +66,8 @@ function canOpen(spread) {
 }
 
 function canClose(spread, previous) {
-    return spread.spreadPercent.short <= previous.spreadPercent.short - CLOSE_SHORT_PROFIT;
+    return spread.spreadPercent.short <= previous.spreadPercent.short - CLOSE_SHORT_PROFIT
+        || spread.spreadPercent.best >= ABANDON_THRESHOLD;
 }
 
 function initialize() {

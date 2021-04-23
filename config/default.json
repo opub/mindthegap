@@ -6,6 +6,7 @@
     "arbitrageThreshold": 5.0,
     "openShortThreshold": 2.8,
     "closeShortProfit": 2.0,
+    "abandonThreshold": 10.0,
     "logging": "info",
     "output": "output/",
     "exchanges": {},
