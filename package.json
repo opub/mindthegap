@@ -1,14 +1,14 @@
 {
-  "name": "arbitrage",
+  "name": "mindthegap",
   "version": "1.0.0",
-  "description": "Cryptocurrency Arbitrage Bot",
+  "description": "Cryptocurrency Investment Bot",
   "main": "index.js",
   "dependencies": {
-    "better-sqlite3": "^7.1.2",
-    "ccxt": "^1.44.5",
+    "better-sqlite3": "^7.1.5",
+    "ccxt": "^1.48.55",
     "config": "^3.3.6",
     "express": "^4.17.1",
-    "socket.io": "^4.0.0"
+    "socket.io": "^4.0.1"
   },
   "scripts": {
     "start": "node index.js",
@@ -16,14 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/opub/arbitrage.git"
+    "url": "git+https://github.com/opub/mindthegap.git"
   },
   "author": "Ted O'Connor",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/opub/arbitrage/issues"
+    "url": "https://github.com/opub/mindthegap/issues"
   },
-  "homepage": "https://github.com/opub/arbitrage#readme",
+  "homepage": "https://github.com/opub/mindthegap#readme",
   "nodemonConfig": {
     "ext": "js,json,html,css"
   }
