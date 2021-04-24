@@ -4,19 +4,23 @@ const server = require('./index');
 
 let accountCache = new Map();
 
-function getAccount(name) {
+function get(name) {
     if (accountCache.has(name)) {
         return accountCache.get(name);
     } else {
-        return {};
+        return {balance: {}, addresses: {}};
     }
 };
 
-function canBuy (exchange, symbol) {
+function set(name, account) {
+    accountCache.set(name, account);
+}
+
+function canBuy(exchange, symbol) {
     const market = exchange.markets[symbol];
     if (market && market.active) {
-        const acct = getAccount(exchange.id);
-        if (acct.balance && acct.balance[market.quote] > 0) {
+        const acct = get(exchange.id);
+        if (acct.balance[market.quote] > 0) {
             return true;
         } else {
             log.warn(exchange.id, market.quote, 'NO BALANCE');
@@ -30,8 +34,8 @@ exports.canBuy = canBuy;
 exports.canSell = function (exchange, symbol) {
     const market = exchange.markets[symbol];
     if (market && market.active) {
-        const acct = getAccount(exchange.id);
-        if (acct.addresses && acct.addresses[market.base]) {
+        const address = getAddress(exchange, market.base);
+        if (address) {
             return true;
         } else {
             log.warn(exchange.id, market.base, 'NO DEPOSIT ADDRESS');
@@ -63,9 +67,9 @@ exports.fetchBalance = async function (exchange) {
             const total = prune(balance.total);
             if (total) {
                 log.debug(name, 'balance', total);
-                const account = getAccount(name);
+                const account = get(name);
                 account.balance = total;
-                accountCache.set(name, account);
+                set(name, account);
                 return total;
             }
         }
@@ -79,12 +83,26 @@ exports.fetchBalance = async function (exchange) {
     return false;
 }
 
-exports.getDepositAddress = async function (exchange, currency) {
+async function getDepositAddress(exchange, currency) {
     if (!exchange.depositAddress) {
         log.error(exchange.id, 'depositAddress NOT SUPPORTED');
     } else {
         return exchange.depositAddress(currency);
     }
+}
+exports.getDepositAddress = getDepositAddress;
+
+async function getAddress(exchange, currency) {
+    const acct = get(exchange.id);
+    let address = acct.addresses[currency];
+    if(!address) {
+        address = await getDepositAddress(exchange, currency);
+        if(address) {
+            acct.addresses[currency] = address;
+            set(exchange.id, acct);
+        }
+    }
+    return address;
 }
 
 function authenticate(exchange) {
