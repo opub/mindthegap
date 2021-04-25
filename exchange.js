@@ -1,33 +1,44 @@
 const ccxt = require('ccxt');
-const { includeExchange, includeMarket } = require('./utils');
+const { filter } = require('./utils');
 const log = require('./logging');
 const config = require('config');
 const account = require('./account');
 const server = require('./index');
+const market = require('./market');
 require('./extensions');
 
 const RATELIMIT = config.get('rateLimit');
 let exchangeCache = new Map();
-let marketCache = [];
 
-exports.getCurrentExchanges = function () {
-    return exchangeCache;
-}
-
-function getExchange(name) {
-    if (exchangeCache.has(name)) {
-        return exchangeCache.get(name);
+function getExchange(id) {
+    log.debug('getExchange', id);
+    if (exchangeCache.has(id)) {
+        return exchangeCache.get(id);
     } else {
-        return new ccxt[name]({ rateLimit: RATELIMIT, enableRateLimit: true });
+        return new ccxt[id]({ rateLimit: RATELIMIT, enableRateLimit: true });
     }
 };
 exports.getExchange = getExchange;
 
+function getAllExchanges() {
+    log.debug('getAllExchanges');
+    return exchangeCache;
+}
+exports.getAllExchanges = getAllExchanges;
+
+function setAllExchanges(latest) {
+    log.debug('setAllExchanges');
+    exchangeCache = latest;
+    log.info('exchanges', [...exchangeCache.keys()]);
+}
+exports.setAllExchanges = setAllExchanges;
+
 exports.loadMarkets = async function (reload) {
-    log.debug('loading markets');
+    log.debug('loadMarkets', !!reload);
     const jobs = [];
 
-    if (reload || marketCache.length === 0) {
+    let markets = market.getAllMarkets();
+    if (reload || markets.length === 0) {
         const latest = new Map();
         const balances = [];
         for (const name of ccxt.exchanges) {
@@ -37,68 +48,34 @@ exports.loadMarkets = async function (reload) {
                 if (balance) {
                     balance.id = name;
                     balances.push(balance);
-                    latest.set(name, exchange);
-                    jobs.push(loadMarket(exchange, reload));
                 }
+                latest.set(name, exchange);
+                jobs.push(market.loadMarket(exchange, reload));
             } else {
                 log.debug(name, 'excluded');
             }
         }
         server.notify('balances', balances);
-        exchangeCache = latest;
-        log.info('exchanges', [...exchangeCache.keys()]);
+        setAllExchanges(latest);
 
-        marketCache = [];
+        markets = [];
         await Promise.allSettled(jobs).then((results) => {
             for (const result of results) {
                 if (result.status === 'fulfilled' && result.value) {
-                    marketCache.push(result.value);
+                    markets.push(result.value);
                 }
             }
         });
-        report(marketCache);
+        market.setAllMarkets(markets);
+        report(markets);
     }
 
-    return marketCache;
+    return markets;
 };
 
-async function loadMarket(exchange, reload) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const markets = await exchange.loadMarkets(reload);
-            const filtered = filterMarkets(markets);
-            if (filtered.length > 0) {
-                filtered.sort(compareMarkets);
-                log.debug(exchange.id, 'loaded');
-                resolve({
-                    id: exchange.id,
-                    markets: filtered
-                });
-            } else {
-                log.debug(exchange.id, 'empty');
-                resolve();
-            }
-        }
-        catch (e) {
-            let msg = e.toString();
-            log.warn(exchange.id, 'loadMarket failed', msg.indexOf('\n') > 0 ? msg.substring(0, msg.indexOf('\n')) : msg);
-            reject(e);
-        }
-    });
-}
-
-function filterMarkets(markets) {
-    const filtered = [];
-    for (const value of Object.values(markets)) {
-        if (includeMarket(value)) {
-            filtered.push(value);
-        }
-    }
-    return filtered;
-}
-
-function compareMarkets(a, b) {
-    return a.symbol.localeCompare(b.symbol);
+function includeExchange(exchange) {
+    return filter(exchange.id, config.exchanges)
+        && (!config.exchanges.country || exchange.countries.includes(config.exchanges.country));
 }
 
 function report(data) {

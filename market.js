@@ -1,8 +1,68 @@
-const { getExchange } = require('./exchange');
 const action = require('./action');
 const log = require('./logging');
 const config = require('config');
-const { round } = require('./utils');
+const { filter, round } = require('./utils');
+
+let marketCache = [];
+
+function getAllMarkets() {
+    log.debug('getAllMarkets');
+    return marketCache;
+}
+exports.getAllMarkets = getAllMarkets;
+
+function setAllMarkets(latest) {
+    log.debug('setAllMarkets');
+    marketCache = latest;
+}
+exports.setAllMarkets = setAllMarkets;
+
+async function loadMarket(exchange, reload) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const markets = await exchange.loadMarkets(reload);
+            const filtered = filterMarkets(markets);
+            if (filtered.length > 0) {
+                filtered.sort(compareMarkets);
+                log.debug(exchange.id, 'loaded');
+                resolve({
+                    id: exchange.id,
+                    markets: filtered
+                });
+            } else {
+                log.debug(exchange.id, 'empty');
+                resolve();
+            }
+        }
+        catch (e) {
+            let msg = e.toString();
+            log.warn(exchange.id, 'loadMarket failed', msg.indexOf('\n') > 0 ? msg.substring(0, msg.indexOf('\n')) : msg);
+            reject(e);
+        }
+    });
+}
+exports.loadMarket = loadMarket;
+
+function filterMarkets(markets) {
+    const filtered = [];
+    for (const value of Object.values(markets)) {
+        if (includeMarket(value)) {
+            filtered.push(value);
+        }
+    }
+    return filtered;
+}
+
+function includeMarket(market) {
+    return market.active && !market.darkpool
+        && filter(market.type ? market.type.toLowerCase() : market.type, config.markets)
+        && filter(market.base.toLowerCase(), config.bases)
+        && filter(market.quote.toLowerCase(), config.quotes);
+}
+
+function compareMarkets(a, b) {
+    return a.symbol.localeCompare(b.symbol);
+}
 
 exports.getSpreads = async function (markets) {
     log.debug('getting spreads');

@@ -6,12 +6,22 @@
             "poloniex"
         ],
         "exclude": [
+            "aofex",
             "btcalpha",
+            "buda",
             "coinbase",
             "coinbaseprime",
+            "coinegg",
             "coingi",
             "coinmarketcap",
-            "lakebtc"
+            "eterbase",
+            "fcoin",
+            "fcoinjp",
+            "flowbtc",
+            "lakebtc",
+            "tidebit",
+            "xbtce",
+            "xena"
         ]
     },
     "markets": {

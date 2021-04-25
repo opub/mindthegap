@@ -3,6 +3,7 @@ const config = require('config');
 const db = require('./db');
 const account = require('./account');
 const exchange = require('./exchange');
+const { execute } = require('./utils');
 
 const ARBITRAGE_THRESHOLD = config.get('arbitrageThreshold');
 const OPEN_SHORT_THRESHOLD = config.get('openShortThreshold');
@@ -53,15 +54,15 @@ exports.process = async function (spreads) {
     return spreads;
 };
 
-function canArbitrage(spread) {    
+function canArbitrage(spread) {
     return (spread.spreadPercent.best >= ARBITRAGE_THRESHOLD
-        && account.canBuy(exchange.getExchange(spread.high.exchange), spread.symbol) 
+        && account.canBuy(exchange.getExchange(spread.high.exchange), spread.symbol)
         && account.canSell(exchange.getExchange(spread.low.exchange), spread.symbol));
 }
 
 function canOpen(spread) {
     return (spread.spreadPercent.short >= OPEN_SHORT_THRESHOLD
-        && account.canOpenHigh(exchange.getExchange(spread.short.exchange), spread.symbol) 
+        && account.canOpenHigh(exchange.getExchange(spread.short.exchange), spread.symbol)
         && account.canOpenLow(exchange.getExchange(spread.low.exchange), spread.symbol));
 }
 
@@ -79,4 +80,4 @@ function initialize() {
     }
 }
 
-initialize();
+execute(initialize);

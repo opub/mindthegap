@@ -12,7 +12,7 @@
   },
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "set TESTING=true && mocha"
   },
   "repository": {
     "type": "git",
@@ -26,5 +26,8 @@
   "homepage": "https://github.com/opub/mindthegap#readme",
   "nodemonConfig": {
     "ext": "js,json,html,css"
+  },
+  "devDependencies": {
+    "mocha": "^8.3.2"
   }
 }

@@ -5,6 +5,7 @@ const action = require('./action');
 const log = require('./logging');
 const config = require('config');
 const server = require('./index');
+const { execute } = require('./utils');
 
 const CONTINUOUS = config.get('continuous');
 const RUNINTERVAL = config.get('runInterval');
@@ -26,4 +27,4 @@ async function runner() {
     }
 }
 
-runner();
+execute(runner);

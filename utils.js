@@ -1,25 +1,15 @@
-const config = require('config');
+exports.execute = function(f) {
+    if(!process.env.TESTING) {
+        f();
+    }
+}
 
 exports.round = function (number, decimalPlaces) {
     const factorOfTen = Math.pow(10, decimalPlaces);
     return Math.round(number * factorOfTen) / factorOfTen;
 }
 
-// filtering
-
-exports.includeExchange = function (exchange) {
-    return filter(exchange.id, config.exchanges)
-        && (!config.exchanges.country || exchange.countries.includes(config.exchanges.country));
-}
-
-exports.includeMarket = function (market) {
-    return market.active && !market.darkpool
-        && filter(market.type ? market.type.toLowerCase() : market.type, config.markets)
-        && filter(market.base.toLowerCase(), config.bases)
-        && filter(market.quote.toLowerCase(), config.quotes);
-}
-
-function filter(name, values) {
+exports.filter = function (name, values) {
     return !(name && values && (values.include && !values.include.includes(name)
         || values.exclude && values.exclude.includes(name)));
 }

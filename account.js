@@ -54,22 +54,22 @@ exports.canOpenLow = function (exchange, symbol) {
 }
 
 exports.fetchBalance = async function (exchange) {
-    const name = exchange.id;
-    log.debug(name, 'fetching balance');
-    if (exchange.has['fetchBalance'] && credentials[name]) {
+    const id = exchange.id;
+    log.debug('fetchBalance', id);
+    if (exchange.has['fetchBalance'] && credentials[id]) {
         try {
             exchange = authenticate(exchange);
             const params = {};
-            if (name === 'okcoin') {
+            if (id === 'okcoin') {
                 params.type = 'account';
             }
             const balance = await exchange.fetchBalance(params);
             const total = prune(balance.total);
             if (total) {
-                log.debug(name, 'balance', total);
-                const account = get(name);
+                log.debug(id, 'balance', total);
+                const account = get(id);
                 account.balance = total;
-                set(name, account);
+                set(id, account);
                 return total;
             }
         }
@@ -78,7 +78,7 @@ exports.fetchBalance = async function (exchange) {
             log.warn(exchange.id, 'fetchBalance failed', msg.indexOf('\n') > 0 ? msg.substring(0, msg.indexOf('\n')) : msg);
         }
     } else {
-        log.debug(name, exchange.has['fetchBalance'] ? 'no credentials' : 'no fetchBalance support');
+        log.debug(id, exchange.has['fetchBalance'] ? 'no credentials' : 'no fetchBalance support');
     }
     return false;
 }
