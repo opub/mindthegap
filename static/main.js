@@ -199,7 +199,7 @@ function getAnnotation(type, high, low, x, y) {
             size: 2,
         },
         label: {
-            text: `${type}: ${high}/${low}`,
+            text: `${type}: ${low}>${high}`,
             style: {
                 color: colors.foreground,
                 background: colors[type]
