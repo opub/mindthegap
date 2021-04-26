@@ -1,5 +1,6 @@
 const ccxt = require('ccxt');
 const { filter } = require('./utils');
+const { reportExchange } = require('./report');
 const log = require('./logging');
 const config = require('config');
 const account = require('./account');
@@ -31,7 +32,6 @@ function setAllExchanges(latest) {
     exchangeCache = latest;
     log.info('exchanges', [...exchangeCache.keys()]);
 }
-exports.setAllExchanges = setAllExchanges;
 
 exports.loadMarkets = async function (reload) {
     log.debug('loadMarkets', !!reload);
@@ -67,7 +67,7 @@ exports.loadMarkets = async function (reload) {
             }
         });
         market.setAllMarkets(markets);
-        report(markets);
+        reportExchange(markets);
     }
 
     return markets;
@@ -76,31 +76,4 @@ exports.loadMarkets = async function (reload) {
 function includeExchange(exchange) {
     return filter(exchange.id, config.exchanges)
         && (!config.exchanges.country || exchange.countries.includes(config.exchanges.country));
-}
-
-function report(data) {
-    if (log.willLog('debug')) {
-        let exchanges = new Set();
-        let markets = new Set();
-        let bases = new Set();
-        let quotes = new Set();
-
-        data.forEach(e => {
-            exchanges.add(e.id);
-            e.markets.forEach(m => {
-                markets.add(m.symbol);
-                bases.add(m.base);
-                quotes.add(m.quote);
-            });
-        });
-
-        let results = {
-            exchanges: { count: exchanges.size, names: Array.from(exchanges.values()) },
-            markets: { count: markets.size, names: Array.from(markets.values()) },
-            bases: { count: bases.size, names: Array.from(bases.values()) },
-            quotes: { count: quotes.size, names: Array.from(quotes.values()) }
-        };
-
-        log.debug(JSON.stringify(results, null, 2));
-    }
 }
