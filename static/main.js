@@ -44,7 +44,7 @@ socket.on('alerts', function (data) {
     for (let item of data) {
         let hashed = hash(JSON.stringify(item));
         console.log('hashed = ', hashed);
-        if(!document.getElementById(hashed)) {
+        if (!document.getElementById(hashed)) {
             let id = item.id;
             delete item.id;
             let target = document.createElement('div');
@@ -115,10 +115,21 @@ function getChart(symbol) {
                 },
                 foreColor: colors.foreground,
                 toolbar: {
-                    show: false
+                    show: true,
+                    tools: {
+                        selection: true,
+                        zoom: true,
+                        pan: true,
+                        reset: true,
+                        zoomin: false,
+                        zoomout: false,
+                        download: false,
+                        customIcons: []
+                    },
                 },
                 zoom: {
-                    enabled: false
+                    enabled: true,
+                    type: 'x'
                 }
             },
             title: {
@@ -215,7 +226,7 @@ function hash(str, seed = 0) {
         h1 = Math.imul(h1 ^ ch, 2654435761);
         h2 = Math.imul(h2 ^ ch, 1597334677);
     }
-    h1 = Math.imul(h1 ^ (h1>>>16), 2246822507) ^ Math.imul(h2 ^ (h2>>>13), 3266489909);
-    h2 = Math.imul(h2 ^ (h2>>>16), 2246822507) ^ Math.imul(h1 ^ (h1>>>13), 3266489909);
-    return 4294967296 * (2097151 & h2) + (h1>>>0);
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return 4294967296 * (2097151 & h2) + (h1 >>> 0);
 };
