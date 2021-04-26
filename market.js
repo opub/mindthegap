@@ -1,22 +1,9 @@
 const action = require('./action');
 const log = require('./logging');
 const config = require('config');
+const loader = require('./loader');
 const { filter, round } = require('./utils');
 const { reportMarkets } = require('./report');
-
-let marketCache = [];
-
-function getAllMarkets() {
-    log.debug('getAllMarkets');
-    return marketCache;
-}
-exports.getAllMarkets = getAllMarkets;
-
-function setAllMarkets(latest) {
-    log.debug('setAllMarkets');
-    marketCache = latest;
-}
-exports.setAllMarkets = setAllMarkets;
 
 async function loadMarket(exchange, reload) {
     return new Promise(async (resolve, reject) => {
@@ -90,7 +77,7 @@ exports.getGaps = async function (markets) {
 async function fetchMarketPrices(marketSet) {
     return new Promise(async (resolve, reject) => {
         let prices = [];
-        const exchange = getExchange(marketSet.id);
+        const exchange = loader.getExchange(marketSet.id);
         for (const m of marketSet.markets) {
             try {
                 let orderbook = await exchange.fetchOrderBook(m.symbol);

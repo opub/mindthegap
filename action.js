@@ -2,7 +2,7 @@ const log = require('./logging');
 const config = require('config');
 const db = require('./db');
 const account = require('./account');
-const exchange = require('./exchange');
+const loader = require('./loader');
 const { execute } = require('./utils');
 
 const ARBITRAGE_THRESHOLD = config.get('arbitrageThreshold');
@@ -56,14 +56,14 @@ exports.process = async function (gaps) {
 
 function canArbitrage(gap) {
     return (gap.gapPercent.best >= ARBITRAGE_THRESHOLD
-        && account.canBuy(exchange.getExchange(gap.high.exchange), gap.symbol)
-        && account.canSell(exchange.getExchange(gap.low.exchange), gap.symbol));
+        && account.canBuy(loader.getExchange(gap.high.exchange), gap.symbol)
+        && account.canSell(loader.getExchange(gap.low.exchange), gap.symbol));
 }
 
 function canOpen(gap) {
     return (gap.gapPercent.short >= OPEN_SHORT_THRESHOLD
-        && account.canOpenHigh(exchange.getExchange(gap.short.exchange), gap.symbol)
-        && account.canOpenLow(exchange.getExchange(gap.low.exchange), gap.symbol));
+        && account.canOpenHigh(loader.getExchange(gap.short.exchange), gap.symbol)
+        && account.canOpenLow(loader.getExchange(gap.low.exchange), gap.symbol));
 }
 
 function canClose(gap, previous) {
