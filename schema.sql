@@ -32,10 +32,10 @@
     taker: 0.0026,
     percentage: 1
   },
-  spread: { best: 0.00189, short: 0.001809 },
-  spreadPercent: { best: 2.75016429, short: 2.38719026 }
+  gap: { best: 0.00189, short: 0.001809 },
+  gapPercent: { best: 2.75016429, short: 2.38719026 }
 */
-CREATE TABLE IF NOT EXISTS spreads (
+CREATE TABLE IF NOT EXISTS gaps (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     time INTEGER NOT NULL,
     symbol TEXT NOT NULL,

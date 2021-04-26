@@ -1,5 +1,6 @@
 {
     "exchanges": {
+        "country": "US",
         "shorts": [
             "bitfinex",
             "kraken",

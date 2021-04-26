@@ -19,62 +19,62 @@ exports.getWatched = function (symbol) {
     return watchList.get(symbol);
 };
 
-exports.process = async function (spreads) {
-    for (const spread of spreads) {
-        let symbol = spread.symbol;
+exports.process = async function (gaps) {
+    for (const gap of gaps) {
+        let symbol = gap.symbol;
         if (!watchList.has(symbol)) {
-            spread.duration = undefined;
-            if (canArbitrage(spread)) {
-                log.info('ARBITRAGE', spread);
-                spread.action = 'arbitrage';
-            } else if (canOpen(spread)) {
-                log.info('OPENING', spread);
-                watchList.set(symbol, spread);
-                spread.action = 'open';
+            gap.duration = undefined;
+            if (canArbitrage(gap)) {
+                log.info('ARBITRAGE', gap);
+                gap.action = 'arbitrage';
+            } else if (canOpen(gap)) {
+                log.info('OPENING', gap);
+                watchList.set(symbol, gap);
+                gap.action = 'open';
             } else {
-                log.info('passing on', symbol, spread.spreadPercent);
-                spread.action = 'pass';
+                log.info('passing on', symbol, gap.gapPercent);
+                gap.action = 'pass';
             }
         } else {
             let previous = watchList.get(symbol);
-            spread.duration = Date.now() - previous.date.getTime();
-            if (canClose(spread, previous)) {
-                log.info('CLOSING', previous.spreadPercent.short, spread);
+            gap.duration = Date.now() - previous.date.getTime();
+            if (canClose(gap, previous)) {
+                log.info('CLOSING', previous.gapPercent.short, gap);
                 watchList.delete(symbol);
-                spread.action = 'close';
+                gap.action = 'close';
             } else {
-                log.info('already watching', symbol, previous.spreadPercent.short, spread.spreadPercent.short);
-                spread.action = 'watch';
+                log.info('already watching', symbol, previous.gapPercent.short, gap.gapPercent.short);
+                gap.action = 'watch';
             }
         }
     }
-    db.saveSpreads(spreads);
+    db.saveGaps(gaps);
     db.saveWatching(watchList.values())
 
-    return spreads;
+    return gaps;
 };
 
-function canArbitrage(spread) {
-    return (spread.spreadPercent.best >= ARBITRAGE_THRESHOLD
-        && account.canBuy(exchange.getExchange(spread.high.exchange), spread.symbol)
-        && account.canSell(exchange.getExchange(spread.low.exchange), spread.symbol));
+function canArbitrage(gap) {
+    return (gap.gapPercent.best >= ARBITRAGE_THRESHOLD
+        && account.canBuy(exchange.getExchange(gap.high.exchange), gap.symbol)
+        && account.canSell(exchange.getExchange(gap.low.exchange), gap.symbol));
 }
 
-function canOpen(spread) {
-    return (spread.spreadPercent.short >= OPEN_SHORT_THRESHOLD
-        && account.canOpenHigh(exchange.getExchange(spread.short.exchange), spread.symbol)
-        && account.canOpenLow(exchange.getExchange(spread.low.exchange), spread.symbol));
+function canOpen(gap) {
+    return (gap.gapPercent.short >= OPEN_SHORT_THRESHOLD
+        && account.canOpenHigh(exchange.getExchange(gap.short.exchange), gap.symbol)
+        && account.canOpenLow(exchange.getExchange(gap.low.exchange), gap.symbol));
 }
 
-function canClose(spread, previous) {
-    return spread.spreadPercent.short <= previous.spreadPercent.short - CLOSE_SHORT_PROFIT
-        || spread.spreadPercent.best >= ABANDON_THRESHOLD;
+function canClose(gap, previous) {
+    return gap.gapPercent.short <= previous.gapPercent.short - CLOSE_SHORT_PROFIT
+        || gap.gapPercent.best >= ABANDON_THRESHOLD;
 }
 
 function initialize() {
-    const spreads = db.getWatching();
-    log.info('watching', spreads.length);
-    for (const item of spreads) {
+    const gaps = db.getWatching();
+    log.info('watching', gaps.length);
+    for (const item of gaps) {
         log.info(item);
         watchList.set(item.symbol, item);
     }

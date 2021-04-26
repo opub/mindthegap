@@ -16,8 +16,8 @@ function setup() {
     const schema = fs.readFileSync('schema.sql', 'utf8');
     db.exec(schema);
 
-    stmts.insertSpreads = db.prepare('INSERT INTO spreads (time, symbol, action, duration, data) VALUES (@time, @symbol, @action, @duration, @data)');
-    stmts.selectSpreads = db.prepare('SELECT data FROM spreads WHERE time > ? ORDER BY time');
+    stmts.insertGaps = db.prepare('INSERT INTO gaps (time, symbol, action, duration, data) VALUES (@time, @symbol, @action, @duration, @data)');
+    stmts.selectGaps = db.prepare('SELECT data FROM gaps WHERE time > ? ORDER BY time');
     stmts.deleteWatching = db.prepare('DELETE FROM watching');
     stmts.insertWatching = db.prepare('INSERT INTO watching (time, symbol, data) VALUES (@time, @symbol, @data)');
     stmts.selectWatching = db.prepare('SELECT data FROM watching');
@@ -28,19 +28,19 @@ function teardown() {
     db.close();
 }
 
-exports.saveSpreads = async function (spreads) {
-    for (const row of spreads) {
+exports.saveGaps = async function (gaps) {
+    for (const row of gaps) {
         row.data = JSON.stringify(row);
         row.time = row.date.getTime();
-        stmts.insertSpreads.run(row);
+        stmts.insertGaps.run(row);
     }
 };
 
-exports.getSpreads = function (time) {
+exports.getGaps = function (time) {
     if (time === undefined) {
         time = Date.now() - FOUR_HOURS;
     }
-    const rows = stmts.selectSpreads.all(time);
+    const rows = stmts.selectGaps.all(time);
     const results = [];
     for (const row of rows) {
         results.push(JSON.parse(row.data));
@@ -48,7 +48,7 @@ exports.getSpreads = function (time) {
     return results;
 };
 
-exports.saveWatching = async function (spreads) {
+exports.saveWatching = async function (gaps) {
     const replace = db.transaction((rows) => {
         stmts.deleteWatching.run();
         for (const row of rows) {
@@ -59,16 +59,16 @@ exports.saveWatching = async function (spreads) {
             stmts.insertWatching.run(row);
         }
     });
-    replace(spreads);
+    replace(gaps);
 };
 
 exports.getWatching = function () {
     const rows = stmts.selectWatching.all();
     const results = [];
     for (const row of rows) {
-        let spread = JSON.parse(row.data);
-        spread.date = new Date(spread.date);
-        results.push(spread);
+        let gap = JSON.parse(row.data);
+        gap.date = new Date(gap.date);
+        results.push(gap);
     }
     return results;
 };

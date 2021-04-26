@@ -1,7 +1,7 @@
 const assert = require('assert');
 const exchange = require('../exchange');
 
-const MINIMUM = 5;
+const MINIMUM = 10;
 const NAME = 'kraken';
 
 describe('exchange', function () {
@@ -20,6 +20,13 @@ describe('exchange', function () {
             assert(exchanges.size > MINIMUM);
             const ex = exchanges.get(NAME);
             assert.equal(ex.id, NAME);
+        });
+
+        it('should only load US exchanges', () => {
+            const exchanges = exchange.getAllExchanges();
+            for(const ex of exchanges.values()) {
+                assert(ex.countries.includes('US'), `${ex.id}: ${ex.countries}`);
+            }
         });
     });
 

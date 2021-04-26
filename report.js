@@ -26,3 +26,21 @@ exports.reportExchange = function (data) {
         log.debug(JSON.stringify(results, null, 2));
     }
 }
+
+exports.reportMarkets = function (prices) {
+    if (log.willLog('debug')) {
+        let results = new Map();
+
+        for (const p of prices) {
+            let values = results.has(p.symbol) ? results.get(p.symbol) : { exchanges: [], bids: [], asks: [], makers: [], takers: [] };
+            values.exchanges.push(p.exchange);
+            values.bids.push(p.bid);
+            values.asks.push(p.ask);
+            values.makers.push(p.maker);
+            values.takers.push(p.taker);
+            results.set(p.symbol, values);
+        }
+
+        log.debug(results);
+    }
+}

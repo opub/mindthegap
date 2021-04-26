@@ -2,6 +2,7 @@ const action = require('./action');
 const log = require('./logging');
 const config = require('config');
 const { filter, round } = require('./utils');
+const { reportMarkets } = require('./report');
 
 let marketCache = [];
 
@@ -64,8 +65,8 @@ function compareMarkets(a, b) {
     return a.symbol.localeCompare(b.symbol);
 }
 
-exports.getSpreads = async function (markets) {
-    log.debug('getting spreads');
+exports.getGaps = async function (markets) {
+    log.debug('getting gaps');
     const jobs = [];
 
     for (const m of markets) {
@@ -79,30 +80,12 @@ exports.getSpreads = async function (markets) {
             }
         }
     });
-    report(loaded);
+    reportMarkets(loaded);
 
-    const filtered = filterSpreads(loaded);
+    const filtered = filterGaps(loaded);
     log.debug(filtered);
     return filtered;
 };
-
-function report(prices) {
-    if (log.willLog('debug')) {
-        let results = new Map();
-
-        for (const p of prices) {
-            let values = results.has(p.symbol) ? results.get(p.symbol) : { exchanges: [], bids: [], asks: [], makers: [], takers: [] };
-            values.exchanges.push(p.exchange);
-            values.bids.push(p.bid);
-            values.asks.push(p.ask);
-            values.makers.push(p.maker);
-            values.takers.push(p.taker);
-            results.set(p.symbol, values);
-        }
-
-        log.debug(results);
-    }
-}
 
 async function fetchMarketPrices(marketSet) {
     return new Promise(async (resolve, reject) => {
@@ -127,7 +110,7 @@ async function fetchMarketPrices(marketSet) {
     });
 }
 
-function filterSpreads(data) {
+function filterGaps(data) {
     let prices = new Map();
 
     for (const item of data) {
@@ -136,7 +119,7 @@ function filterSpreads(data) {
         let shortable = !config.get('exchanges').shorts || config.get('exchanges').shorts.includes(item.exchange);
         let values = prices.has(symbol) ? prices.get(symbol) : { date: new Date(), symbol };
 
-        // determine high and low bids for optimal spread unless already watching a combo
+        // determine high and low bids for optimal gap unless already watching a combo
         if (!watched && (!values.low || item.bid < values.low.bid) || watched && watched.low.exchange === item.exchange) {
             values.low = item;
         }
@@ -151,16 +134,16 @@ function filterSpreads(data) {
 
     let results = [];
     for (const item of prices.values()) {
-        item.spread = {};
-        item.spreadPercent = {};
+        item.gap = {};
+        item.gapPercent = {};
         let watching = action.watching(item.symbol);
         if (item.low && item.high && (watching || item.low.exchange !== item.high.exchange && item.high.bid)) {
-            item.spread.best = getSpread(item.high, item.low);
-            if (item.short) item.spread.short = getSpread(item.short, item.low);
-            // spread percent factors in buying and selling fees to get more accurate profit percent
-            item.spreadPercent.best = getSpreadPercent(item.spread.best, item.high, item.low);
-            if (item.short) item.spreadPercent.short = getSpreadPercent(item.spread.short, item.short, item.low);
-            if (watching || item.spreadPercent.best > 0 || item.spreadPercent.short > 0) {
+            item.gap.best = getGap(item.high, item.low);
+            if (item.short) item.gap.short = getGap(item.short, item.low);
+            // gap percent factors in buying and selling fees to get more accurate profit percent
+            item.gapPercent.best = getGapPercent(item.gap.best, item.high, item.low);
+            if (item.short) item.gapPercent.short = getGapPercent(item.gap.short, item.short, item.low);
+            if (watching || item.gapPercent.best > 0 || item.gapPercent.short > 0) {
                 results.push(item);
             }
         }
@@ -169,19 +152,19 @@ function filterSpreads(data) {
     return results;
 }
 
-function getSpread(high, low) {
-    let spread = high.bid - low.bid;
+function getGap(high, low) {
+    let gap = high.bid - low.bid;
     if (!high.percentage) {
-        spread -= Math.max(high.maker, high.taker) * 2;
+        gap -= Math.max(high.maker, high.taker) * 2;
     }
     if (!low.percentage) {
-        spread -= Math.max(low.maker, low.taker) * 2;
+        gap -= Math.max(low.maker, low.taker) * 2;
     }
-    return round(spread, 8)
+    return round(gap, 8)
 }
 
-function getSpreadPercent(spread, high, low) {
-    let percent = spread / high.bid;
+function getGapPercent(gap, high, low) {
+    let percent = gap / high.bid;
     if (high.percentage) {
         percent -= Math.max(high.maker, high.taker) * 2;
     }
@@ -192,5 +175,5 @@ function getSpreadPercent(spread, high, low) {
 }
 
 function comparePrices(a, b) {
-    return b.spreadPercent.best - a.spreadPercent.best;
+    return b.gapPercent.best - a.gapPercent.best;
 }

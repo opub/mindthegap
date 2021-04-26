@@ -17,10 +17,10 @@ exports.notify = function (event, args) {
 function start() {
     app.use(express.static('static'));
 
-    app.route('/spreads/:time?').get(function (req, res) {
-        log.info('GET /spreads/', req.params.time);
-        const spreads = db.getSpreads(req.params.time);
-        res.send(spreads);
+    app.route('/gaps/:time?').get(function (req, res) {
+        log.info('GET /gaps/', req.params.time);
+        const gaps = db.getGaps(req.params.time);
+        res.send(gaps);
     });
 
     io.on('connection', (socket) => {

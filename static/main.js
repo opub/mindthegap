@@ -19,21 +19,21 @@ window.onload = function () {
 
 function initialize() {
     let request = new XMLHttpRequest();
-    request.open('GET', '/spreads');
+    request.open('GET', '/gaps');
     request.responseType = 'json';
     request.send();
 
     request.onload = function () {
-        let spreads = request.response;
-        if (spreads && spreads.length > 0) {
-            for (let item of spreads) {
+        let gaps = request.response;
+        if (gaps && gaps.length > 0) {
+            for (let item of gaps) {
                 addItem(item);
             }
         }
     }
 }
 
-socket.on('spreads', function (data) {
+socket.on('gaps', function (data) {
     for (let item of data) {
         addItem(item);
     }
@@ -74,16 +74,16 @@ function addItem(item) {
     let time = new Date(item.date).getTime();
 
     chart.appendData([{
-        data: [[time, item.spreadPercent.best]]
+        data: [[time, item.gapPercent.best]]
     }, {
-        data: [[time, item.spreadPercent.short]]
+        data: [[time, item.gapPercent.short]]
     }]);
 
     if (item.action === 'open' || item.action === 'close') {
-        const point = getAnnotation(item.action, item.short.exchange, item.low.exchange, time, item.spreadPercent.short);
+        const point = getAnnotation(item.action, item.short.exchange, item.low.exchange, time, item.gapPercent.short);
         chart.addPointAnnotation(point);
     } else if (item.action === 'arbitrage') {
-        const point = getAnnotation(item.action, item.high.exchange, item.low.exchange, time, item.spreadPercent.best);
+        const point = getAnnotation(item.action, item.high.exchange, item.low.exchange, time, item.gapPercent.best);
         chart.addPointAnnotation(point);
     }
 }
