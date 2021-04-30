@@ -7,11 +7,25 @@
         {
             "type": "pwa-node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Unit Tests",
             "skipFiles": [
                 "<node_internals>/**"
             ],
+            "env": {
+                "TESTING": "true"
+            },
             "program": "./node_modules/mocha/bin/mocha"
+        },{
+            "type": "pwa-node",
+            "request": "launch",
+            "name": "Tester",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "env": {
+                "TESTING": "true"
+            },
+            "program": "test.js"
         }
     ]
 }

@@ -1,5 +1,7 @@
 
 /*
+select symbol, action, json_extract(data, '$.low.exchange'), json_extract(data, '$.high.exchange'), json_extract(data, '$.short.exchange'), count(*) from gaps where not action in ('pass','watch') group by 1,2,3,4,5 order by 6 desc,2,1;
+
   date: 2021-03-19T13:23:19.633Z,
   symbol: 'TRX/USD',
   low: {

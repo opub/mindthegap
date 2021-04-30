@@ -1,6 +1,6 @@
 const credentials = require('./config/creds.json');
 const log = require('./logging');
-const server = require('./index');
+const socket = require('./socket');
 
 let accountCache = new Map();
 
@@ -8,7 +8,7 @@ function get(name) {
     if (accountCache.has(name)) {
         return accountCache.get(name);
     } else {
-        return {balance: {}, addresses: {}};
+        return { balance: {}, addresses: {} };
     }
 };
 
@@ -24,7 +24,7 @@ function canBuy(exchange, symbol) {
             return true;
         } else {
             log.warn(exchange.id, market.quote, 'NO BALANCE');
-            server.notify('alerts', [{ message: 'no balance', id: exchange.id, currency: market.quote }]);
+            socket.notify('alerts', [{ message: 'no balance', id: exchange.id, currency: market.quote }]);
         }
     }
     return false;
@@ -39,7 +39,7 @@ exports.canSell = function (exchange, symbol) {
             return true;
         } else {
             log.warn(exchange.id, market.base, 'NO DEPOSIT ADDRESS');
-            server.notify('alerts', [{ message: 'no deposit address', id: exchange.id, currency: market.quote }]);
+            socket.notify('alerts', [{ message: 'no deposit address', id: exchange.id, currency: market.quote }]);
         }
     }
     return false;
@@ -95,9 +95,9 @@ exports.getDepositAddress = getDepositAddress;
 async function getAddress(exchange, currency) {
     const acct = get(exchange.id);
     let address = acct.addresses[currency];
-    if(!address) {
+    if (!address) {
         address = await getDepositAddress(exchange, currency);
-        if(address) {
+        if (address) {
             acct.addresses[currency] = address;
             set(exchange.id, acct);
         }
@@ -116,6 +116,9 @@ function authenticate(exchange) {
                 exchange[key] = creds[key];
             }
         }
+    }
+    if (creds.trade_pwd) {
+        exchange.trade_pwd = creds.trade_pwd;
     }
     return exchange;
 }

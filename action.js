@@ -54,6 +54,16 @@ exports.process = async function (gaps) {
     return gaps;
 };
 
+async function transfer(source, destination, currency, amount) {
+    const address = await account.getDepositAddress(destination, currency);
+    log.info('transfer', amount, currency, address);
+    if (address) {
+        const results = await source.withdraw(currency, amount, address, false, params = {fee:"0.001", trade_pwd:source.trade_pwd});
+        log.info('transfer', results);
+    }
+}
+exports.transfer = transfer;
+
 function canArbitrage(gap) {
     return (gap.gapPercent.best >= ARBITRAGE_THRESHOLD
         && account.canBuy(loader.getExchange(gap.high.exchange), gap.symbol)

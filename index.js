@@ -1,20 +1,19 @@
-//starts background processes
-require('./runner');
-
 const express = require('express');
 const app = require('express')();
 const http = require('http').Server(app);
-const io = require('socket.io')(http);
-const log = require('./logging');
+const socket = require('./socket');
+const exchange = require('./exchange');
+const market = require('./market');
+const action = require('./action');
 const db = require('./db');
+const config = require('config');
+const log = require('./logging');
 const { execute } = require('./utils');
+
 const port = process.env.PORT || 3000;
+let count = 0;
 
-exports.notify = function (event, args) {
-    io.emit(event, args);
-};
-
-function start() {
+function setup() {
     app.use(express.static('static'));
 
     app.route('/gaps/:time?').get(function (req, res) {
@@ -23,16 +22,30 @@ function start() {
         res.send(gaps);
     });
 
-    io.on('connection', (socket) => {
-        log.info('connected');
-        socket.on('disconnect', () => {
-            log.info('disconnected');
-        });
-    });
-
     http.listen(port, () => {
         log.info(`server running at http://localhost:${port}/`);
     });
+
+    socket.setup(http);
+
+    runner();
 }
 
-execute(start);
+async function runner() {
+    const started = Date.now();
+    log.debug('started');
+
+    const reload = count % config.get('reloadRate') === 0;
+    const markets = await exchange.loadMarkets(reload);
+    let gaps = await market.getGaps(markets);
+    gaps = await action.process(gaps);
+    socket.notify('gaps', gaps);
+
+    log.info('completed', ++count, ((Date.now() - started) / 1000).toFixed(3));
+
+    if (config.get('continuous')) {
+        setTimeout(runner, config.get('runInterval'));
+    }
+}
+
+execute(setup);

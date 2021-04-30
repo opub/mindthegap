@@ -5,7 +5,7 @@ const loader = require('./loader');
 const log = require('./logging');
 const config = require('config');
 const account = require('./account');
-const server = require('./index');
+const socket = require('./socket');
 const market = require('./market');
 require('./extensions');
 
@@ -31,7 +31,7 @@ exports.loadMarkets = async function (reload) {
                 log.debug(name, 'excluded');
             }
         }
-        server.notify('balances', balances);
+        socket.notify('balances', balances);
         loader.setExchanges(latest);
 
         markets = [];
@@ -47,7 +47,7 @@ exports.loadMarkets = async function (reload) {
     }
 
     return markets;
-};
+}
 
 function includeExchange(exchange) {
     return filter(exchange.id, config.exchanges)
