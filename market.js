@@ -89,8 +89,7 @@ async function fetchMarketPrices(marketSet) {
                 }
             }
             catch (e) {
-                log.warn(marketSet.id, m.symbol, 'fetchMarketPrices failed', e.message.indexOf('\n') > 0 ? e.message.substring(0, e.message.indexOf('\n')) : e.message);
-                log.error(e.stack);
+                log.error(e, marketSet.id, m.symbol, 'fetchMarketPrices failed');
             }
         }
         resolve(prices);

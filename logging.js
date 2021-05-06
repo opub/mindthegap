@@ -17,32 +17,37 @@ function willLog(level) {
 }
 exports.willLog = willLog;
 
-exports.debug = function () {
+exports.debug = function (...params) {
     if (willLog('debug')) {
-        writeLog('debug', arguments);
+        writeLog('debug', params);
     }
 }
 
-exports.info = function () {
+exports.info = function (...params) {
     if (willLog('info')) {
-        writeLog('info', arguments);
+        writeLog('info', params);
     }
 }
 
-exports.warn = function () {
+exports.warn = function (...params) {
     if (willLog('warn')) {
-        writeLog('warn', arguments);
+        writeLog('warn', params);
     }
 }
 
-exports.error = function () {
+exports.error = function (...params) {
     if (willLog('error')) {
-        writeLog('error', arguments);
+        if (params && params.length > 0 && params[0] && params[0].stack && params[0].message) {
+            let e = params[0];
+            params = params.slice(1);
+            params.push(e.message, e.stack);
+        }
+        writeLog('error', params);
     }
 }
 
 function writeLog(level, params) {
-    if(level === 'error') {
+    if (level === 'error') {
         console.error(new Date().toISOString(), level.toUpperCase(), ...params);
     } else {
         console.log(new Date().toISOString(), level.toUpperCase(), ...params);

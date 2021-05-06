@@ -7,6 +7,14 @@
         {
             "type": "pwa-node",
             "request": "launch",
+            "name": "Application",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "index.js"
+        },{
+            "type": "pwa-node",
+            "request": "launch",
             "name": "Unit Tests",
             "skipFiles": [
                 "<node_internals>/**"

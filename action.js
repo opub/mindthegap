@@ -55,11 +55,16 @@ exports.process = async function (gaps) {
 };
 
 async function transfer(source, destination, currency, amount) {
-    const address = await account.getDepositAddress(destination, currency);
-    log.info('transfer', amount, currency, address);
-    if (address) {
-        const results = await source.withdraw(currency, amount, address, false, params = {fee:"0.001", trade_pwd:source.trade_pwd});
-        log.info('transfer', results);
+    try {
+        const address = await account.getDepositAddress(destination, currency);
+        log.info('transfer', amount, currency, address);
+        if (address) {
+            const results = await source.withdraw(currency, amount, address, false, params = {fee:"0.001", trade_pwd:source.trade_pwd});
+            log.info('transfer', results);
+        }
+    }
+    catch(e) {
+        log.error(e, 'transfer failed', source.id, destination.id, currency);
     }
 }
 exports.transfer = transfer;

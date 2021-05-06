@@ -1,4 +1,4 @@
-# arbitrage
+# Mind The Gap
 Cryptocurrency arbitrage bot
 
 Links:
