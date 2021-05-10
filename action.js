@@ -9,6 +9,7 @@ const ARBITRAGE_THRESHOLD = config.get('arbitrageThreshold');
 const OPEN_SHORT_THRESHOLD = config.get('openShortThreshold');
 const CLOSE_SHORT_PROFIT = config.get('closeShortProfit');
 const ABANDON_THRESHOLD = config.get('abandonThreshold');
+const CAN_ARBITRAGE = config.get('arbitrage');
 const watchList = new Map();
 
 exports.watching = function (symbol) {
@@ -70,7 +71,7 @@ async function transfer(source, destination, currency, amount) {
 exports.transfer = transfer;
 
 function canArbitrage(gap) {
-    return (gap.gapPercent.best >= ARBITRAGE_THRESHOLD
+    return (CAN_ARBITRAGE && config.gap.gapPercent.best >= ARBITRAGE_THRESHOLD
         && account.canBuy(loader.getExchange(gap.high.exchange), gap.symbol)
         && account.canSell(loader.getExchange(gap.low.exchange), gap.symbol));
 }

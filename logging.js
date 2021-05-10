@@ -48,8 +48,15 @@ exports.error = function (...params) {
 
 function writeLog(level, params) {
     if (level === 'error') {
-        console.error(new Date().toISOString(), level.toUpperCase(), ...params);
+        console.error(formatDate(), level.toUpperCase(), ...params);
     } else {
-        console.log(new Date().toISOString(), level.toUpperCase(), ...params);
+        console.log(formatDate(), level.toUpperCase(), ...params);
     }
+}
+
+// make time local instead of UTC and remove T and Z from ISO format
+function formatDate() {
+    let now = new Date();
+    now = new Date(now.getTime() - (now.getTimezoneOffset()*60*1000));
+    return now.toISOString().replace('T', ' ').substring(0, 23);
 }
