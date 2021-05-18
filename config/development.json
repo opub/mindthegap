@@ -35,23 +35,22 @@
     "bases": {
         "include": [
             "ada",
-            "algo",
-            "atom",
             "bch",
             "btc",
             "dash",
-            "dot",
             "eos",
             "etc",
             "eth",
-            "fil",
             "link",
             "ltc",
-            "omg",
             "trx",
-            "xbt",
-            "xlm",
+            "usdt",
+            "xmr",
+            "xrp",
             "xtz"
+        ], 
+        "exclude": [
+            "rep"
         ]
     },
     "quotes": {
