@@ -8,6 +8,8 @@
         ],
         "exclude": [
             "aofex",
+            "bibox",
+            "bitfinex",
             "btcalpha",
             "buda",
             "coinbase",
@@ -22,6 +24,9 @@
             "flowbtc",
             "lakebtc",
             "okex",
+            "okex5",
+            "poloniex",
+            "qtrade",
             "tidebit",
             "xbtce",
             "xena"
@@ -33,31 +38,25 @@
         ]
     },
     "bases": {
-        "include": [
-            "ada",
-            "bch",
-            "btc",
-            "dash",
-            "eos",
-            "etc",
-            "eth",
-            "link",
-            "ltc",
-            "trx",
-            "usdt",
-            "xmr",
-            "xrp",
-            "xtz"
-        ], 
         "exclude": [
+            "knc",
             "rep"
         ]
     },
     "quotes": {
         "include": [
             "usd",
-            "usdc"
+            "usdc",
+            "btc"
         ]
     },
-    "logging": "info"
+    "logging": "info",
+    "exclusions": {
+        "binanceus": [
+            "dash"
+        ],
+        "bittrex": [
+            "iota"
+        ]
+    }
 }

@@ -3,6 +3,7 @@ const log = require('./logging');
 const config = require('config');
 
 const RATELIMIT = config.get('rateLimit');
+const VERBOSE = false;
 
 let exchangeCache = new Map();
 let marketCache = [];
@@ -12,7 +13,7 @@ function getExchange(id) {
     if (exchangeCache.has(id)) {
         return exchangeCache.get(id);
     } else {
-        return new ccxt[id]({ rateLimit: RATELIMIT, enableRateLimit: true });
+        return new ccxt[id]({ rateLimit: RATELIMIT, enableRateLimit: true, verbose: VERBOSE });
     }
 };
 exports.getExchange = getExchange;

@@ -60,31 +60,35 @@ async function transfer(source, destination, currency, amount) {
         const address = await account.getDepositAddress(destination, currency);
         log.info('transfer', amount, currency, address);
         if (address) {
-            const results = await source.withdraw(currency, amount, address, false, params = {fee:"0.001", trade_pwd:source.trade_pwd});
+            const results = await source.withdraw(currency, amount, address, false, params = { fee: "0.001", trade_pwd: source.trade_pwd });
             log.info('transfer', results);
         }
     }
-    catch(e) {
+    catch (e) {
         log.error(e, 'transfer failed', source.id, destination.id, currency);
     }
 }
 exports.transfer = transfer;
 
 function canArbitrage(gap) {
-    return (CAN_ARBITRAGE && config.gap.gapPercent.best >= ARBITRAGE_THRESHOLD
-        && account.canBuy(loader.getExchange(gap.high.exchange), gap.symbol)
-        && account.canSell(loader.getExchange(gap.low.exchange), gap.symbol));
+    return (CAN_ARBITRAGE && gap.gapPercent.best >= ARBITRAGE_THRESHOLD
+        && account.canBuy(loader.getExchange(gap.high.exchange), gap.symbol) && canTrade(gap.high.exchange, gap.symbol)
+        && account.canSell(loader.getExchange(gap.low.exchange), gap.symbol)) && canTrade(gap.low.exchange, gap.symbol);
 }
 
 function canOpen(gap) {
     return (gap.gapPercent.short >= OPEN_SHORT_THRESHOLD
-        && account.canOpenHigh(loader.getExchange(gap.short.exchange), gap.symbol)
-        && account.canOpenLow(loader.getExchange(gap.low.exchange), gap.symbol));
+        && account.canOpenHigh(loader.getExchange(gap.short.exchange), gap.symbol) && canTrade(gap.short.exchange, gap.symbol)
+        && account.canOpenLow(loader.getExchange(gap.low.exchange), gap.symbol)) && canTrade(gap.low.exchange, gap.symbol);
 }
 
 function canClose(gap, previous) {
     return gap.gapPercent.short <= previous.gapPercent.short - CLOSE_SHORT_PROFIT
         || gap.gapPercent.best >= ABANDON_THRESHOLD;
+}
+
+function canTrade(exchange, currency) {
+    return !(config.exclusions && config.exclusions[exchange] && config.exclusions[exchange].includes(currency));
 }
 
 function initialize() {

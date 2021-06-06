@@ -84,10 +84,15 @@ exports.fetchBalance = async function (exchange) {
 }
 
 async function getDepositAddress(exchange, currency) {
-    if (!exchange.depositAddress) {
-        log.error(exchange.id, 'depositAddress NOT SUPPORTED');
-    } else {
-        return exchange.depositAddress(currency);
+    try {
+        if (!exchange.depositAddress) {
+            log.error(exchange.id, 'depositAddress NOT SUPPORTED');
+        } else {
+            return exchange.depositAddress(currency);
+        }
+    }
+    catch (e) {
+        log.error(e, 'depositAddress failed', exchange.id, currency);
     }
 }
 exports.getDepositAddress = getDepositAddress;

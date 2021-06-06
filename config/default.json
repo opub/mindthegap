@@ -3,7 +3,7 @@
     "runInterval": 5000,
     "reloadRate": 10,
     "rateLimit": 600,
-    "arbitrage": false,
+    "arbitrage": true,
     "arbitrageThreshold": 5.0,
     "openShortThreshold": 2.8,
     "closeShortProfit": 2.0,

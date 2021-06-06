@@ -24,6 +24,7 @@ exports.loadMarkets = async function (reload) {
                 if (balance) {
                     balance.id = name;
                     balances.push(balance);
+                    exchange.balance = balance;
                 }
                 latest.set(name, exchange);
                 jobs.push(market.loadMarket(exchange, reload));
