@@ -1,13 +1,10 @@
 const ccxt = require('ccxt');
-const { filter } = require('./utils');
 const { reportExchange } = require('./report');
 const loader = require('./loader');
 const log = require('./logging');
-const config = require('config');
 const account = require('./account');
 const socket = require('./socket');
 const market = require('./market');
-require('./extensions');
 
 exports.loadMarkets = async function (reload) {
     log.debug('loadMarkets', !!reload);
@@ -19,7 +16,7 @@ exports.loadMarkets = async function (reload) {
         const balances = [];
         for (const name of ccxt.exchanges) {
             const exchange = loader.getExchange(name);
-            if (includeExchange(exchange)) {
+            if (exchange.include()) {
                 const balance = await account.fetchBalance(exchange);
                 if (balance) {
                     balance.id = name;
@@ -48,9 +45,4 @@ exports.loadMarkets = async function (reload) {
     }
 
     return markets;
-}
-
-function includeExchange(exchange) {
-    return filter(exchange.id, config.exchanges)
-        && (!config.exchanges.country || exchange.countries.includes(config.exchanges.country));
 }

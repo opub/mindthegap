@@ -1,6 +1,7 @@
 const ccxt = require('ccxt');
 const log = require('./logging');
 const config = require('config');
+const { proxy } = require('./model/exchange');
 
 const RATELIMIT = config.get('rateLimit');
 const VERBOSE = false;
@@ -13,7 +14,7 @@ function getExchange(id) {
     if (exchangeCache.has(id)) {
         return exchangeCache.get(id);
     } else {
-        return new ccxt[id]({ rateLimit: RATELIMIT, enableRateLimit: true, verbose: VERBOSE });
+        return proxy(new ccxt[id]({ rateLimit: RATELIMIT, enableRateLimit: true, verbose: VERBOSE }));
     }
 };
 exports.getExchange = getExchange;
