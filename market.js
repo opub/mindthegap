@@ -52,9 +52,37 @@ function compareMarkets(a, b) {
     return a.symbol.localeCompare(b.symbol);
 }
 
+function findCommonMarkets(markets) {
+    const found = new Map();
+
+    //find common markets
+    for (const ex of markets) {
+        for( const {symbol} of ex.markets) {
+            if(found.has(symbol)) {
+                found.set(symbol, found.get(symbol)+1);
+            } else {
+                found.set(symbol, 1);
+            }
+        }
+    }
+
+    //remove unique markets
+    for (const ex of markets) {
+        for(let i=0; i < ex.markets.length; i++) {
+            if(found.get(ex.markets[i].symbol) === 1) {
+                ex.markets.splice(i, 1);
+            }
+        }
+    }
+
+    return markets;
+}
+
 exports.getGaps = async function (markets) {
     log.debug('getting gaps');
     const jobs = [];
+
+    markets = findCommonMarkets(markets);
 
     for (const m of markets) {
         jobs.push(fetchMarketPrices(m));
