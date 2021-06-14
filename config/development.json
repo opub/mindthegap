@@ -53,10 +53,25 @@
     "logging": "info",
     "exclusions": {
         "binanceus": [
-            "dash"
+            "bcha",
+            "dash",
+            "iota",
+            "knc",
+            "one"
         ],
         "bittrex": [
+            "ant",
+            "band",
+            "gno",
             "iota"
+        ],
+        "kraken": [
+            "ankr",
+            "bnt",
+            "mkr",
+            "ren",
+            "sushi",
+            "zrx"
         ]
     }
 }

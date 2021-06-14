@@ -1,6 +1,16 @@
 
 /*
-select symbol, action, json_extract(data, '$.low.exchange'), json_extract(data, '$.high.exchange'), json_extract(data, '$.short.exchange'), count(*) from gaps where not action in ('pass','watch') group by 1,2,3,4,5 order by 6 desc,2,1;
+
+-- best in last week
+select symbol, json_extract(data, '$.low.exchange'), json_extract(data, '$.high.exchange'), max(json_extract(data, '$.gapPercent.best'))
+from gaps where action = 'arbitrage' and json_extract(data, '$.date') > date('now', '-7 days') group by 1, 2, 3 order by 4 desc, 1, 2, 3;
+
+-- summary results
+select symbol, action, 
+json_extract(data, '$.low.exchange'), json_extract(data, '$.high.exchange'), 
+json_extract(data, '$.short.exchange'), count(*) 
+from gaps where not action in ('pass','watch') group by 1,2,3,4,5 order by 6 desc,2,1;
+
 
   date: 2021-03-19T13:23:19.633Z,
   symbol: 'TRX/USD',
