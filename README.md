@@ -1,5 +1,11 @@
 # Mind The Gap
-Cryptocurrency arbitrage bot
+Cryptocurrency arbitrage bot. This is in a working state for identifying gaps in exchange prices for various coins. However there were multiple limitations to actually executing the transactions:
+* I'm based in the US where many exchanges are blocked
+* Very few of the exchanges allow margin trades
+* The lists of supported operations from the exchange APIs were not reliable. e.g. they would report they fully supported X but after logging in you'd find out that withdrawing X was suspended indefinitely.
+* the potential tax implications of running this were complex
+
+It ultimately got to the point where these limitations outweighed the benefits. So I am no longer actively developing this.
 
 Links:
 * Advantages of Market-Neutral Arbitrage: https://github.com/butor/blackbird/issues/100
