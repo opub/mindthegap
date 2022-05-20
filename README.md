@@ -1,9 +1,11 @@
 # Mind The Gap - cryptocurrency arbitrage bot
-This is in a working state for identifying gaps in exchange prices for various coins. However there were multiple limitations to actually executing the transactions:
-* I'm based in the US where many exchanges are blocked
-* Very few of the exchanges allow margin trades
-* The lists of supported operations from the exchange APIs were not reliable. e.g. they would report they fully supported X but after logging in you'd find out that withdrawing X was suspended indefinitely.
-* the potential tax implications of running this were complex
+This is in a working state for identifying gaps in exchange prices for various coins. It handles both straight market buy-transfer-sell aad also market-neutral arbitrage using short positions. 
+
+However there were multiple limitations to actually executing the transactions:
+* I'm based in the US where many exchanges are blocked (while not ideal this is handled in the code)
+* Very few of the exchanges allow margin trades (while not ideal this is handled in the code)
+* The potential tax implications of running this were complex (I'm no tax professional)
+* The lists of supported operations from the exchange APIs were not reliable. e.g. they would report they fully supported X but after logging in you'd find out that withdrawing X was suspended indefinitely. (this was very frustrating when you can't rely on the exchange APIs and ended up turning me off the whole project)
 
 It ultimately got to the point where these limitations outweighed the benefits. So I am no longer actively developing this.
 
