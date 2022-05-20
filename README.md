@@ -1,5 +1,5 @@
-# Mind The Gap
-Cryptocurrency arbitrage bot. This is in a working state for identifying gaps in exchange prices for various coins. However there were multiple limitations to actually executing the transactions:
+# Mind The Gap - cryptocurrency arbitrage bot
+This is in a working state for identifying gaps in exchange prices for various coins. However there were multiple limitations to actually executing the transactions:
 * I'm based in the US where many exchanges are blocked
 * Very few of the exchanges allow margin trades
 * The lists of supported operations from the exchange APIs were not reliable. e.g. they would report they fully supported X but after logging in you'd find out that withdrawing X was suspended indefinitely.
