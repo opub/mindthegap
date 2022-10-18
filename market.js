@@ -45,7 +45,8 @@ function includeMarket(market) {
     return market.active && !market.darkpool
         && filter(market.type ? market.type.toLowerCase() : market.type, config.markets)
         && filter(market.base.toLowerCase(), config.bases)
-        && filter(market.quote.toLowerCase(), config.quotes);
+        && filter(market.quote.toLowerCase(), config.quotes)
+        && !(market.info && market.info.prohibitedIn && market.info.prohibitedIn.includes('US'));
 }
 
 function compareMarkets(a, b) {

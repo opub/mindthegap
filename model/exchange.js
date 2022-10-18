@@ -7,11 +7,11 @@ async function simplifyDepositAddress(target, currency) {
     try {
         let data;
         if (['bitstamp', 'bittrex', 'kraken', 'okcoin'].includes(id)) {
-            data = await target.fetchDepositAddress(arguments[0]);
+            data = await target.fetchDepositAddress(currency);
         } else if (['coinbasepro', 'gemini'].includes(id)) {
-            data = await target.createDepositAddress(arguments[0]);
+            data = await target.createDepositAddress(currency);
         } else if (id === 'binanceus') {
-            data = await target.wapiGetDepositAddress({ asset: arguments[0] });
+            data = await target.wapiGetDepositAddress({ asset: currency });
         }
         if (data && (data.success || data.address)) {
             return data.address;
@@ -27,7 +27,9 @@ const Wrapper = {
     get: function (target, prop) {
 
         if (prop === 'depositAddress') {
-            return simplifyDepositAddress(target, arguments[0]);
+            return function() {
+                return simplifyDepositAddress(target, arguments[0]);
+            }
         }
         else if (prop === 'include') {
             return function () {
